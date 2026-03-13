@@ -1,0 +1,176 @@
+<script>
+    /* ========================================================
+         BLACK-OPS TERMINAL // V4 (ANIMATED & AUTO-SCROLLING)
+         ======================================================== */
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // --- 1. RESPONSIVE TACTICAL TOC HUD ---
+        const initTacticalHUD = () => {
+            let progressBar = document.createElement("div");
+            progressBar.className = "reading-progress";
+            document.body.appendChild(progressBar);
+
+            const content = document.querySelector(".post-content");
+            if (!content) return;
+
+            const headings = Array.from(content.querySelectorAll("h2, h3"));
+            if (headings.length === 0) return;
+
+            const hud = document.createElement("div");
+            hud.className = "tactical-toc-hud";
+            document.body.appendChild(hud);
+
+            const hudHeader = document.createElement("div");
+            hudHeader.className = "hud-header";
+            hudHeader.innerHTML = `<span id="hud-pct">00%</span> <span class="hud-label">// TOC_TRACKER</span>`;
+            hud.appendChild(hudHeader);
+
+            // The Scrollable List Box
+            const list = document.createElement("div");
+            list.className = "hud-list";
+            list.id = "toc-scroll-box";
+            hud.appendChild(list);
+
+            const headingData = [];
+
+            headings.forEach((h) => {
+                if (!h.id) h.id = h.innerText.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+                const item = document.createElement("a");
+                item.href = `#${h.id}`;
+                item.className =
+                    h.tagName.toLowerCase() === "h2" ? "hud-item h2" : "hud-item h3";
+
+                let text = h.innerText.replace(/#/g, "").trim();
+                item.innerText = text;
+                item.title = text;
+
+                list.appendChild(item);
+                headingData.push({domElem: h, hudElem: item});
+            });
+
+            const pctDisplay = document.getElementById("hud-pct");
+            const scrollBox = document.getElementById("toc-scroll-box");
+            let ticking = false;
+
+            window.addEventListener("scroll", () => {
+                if (!ticking) {
+                    window.requestAnimationFrame(() => {
+                        const winScroll =
+                            document.documentElement.scrollTop || document.body.scrollTop;
+                        const height =
+                            document.documentElement.scrollHeight -
+                            document.documentElement.clientHeight;
+
+                        const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+                        progressBar.style.width = scrolled + "%";
+
+                        const pct = Math.round(scrolled);
+                        pctDisplay.innerText = (pct < 10 ? `0${pct}` : pct) + "%";
+
+                        let activeIndex = -1;
+                        const triggerPoint = window.innerHeight * 0.3;
+
+                        // Find which heading we are currently reading
+                        headingData.forEach((data, index) => {
+                            const rect = data.domElem.getBoundingClientRect();
+                            if (rect.top < triggerPoint) {
+                                activeIndex = index;
+                            }
+                        });
+
+                        // Update styling and auto-scroll the TOC
+                        headingData.forEach((data, index) => {
+                            if (index === activeIndex) {
+                                // Add glow effect
+                                data.hudElem.classList.add("active");
+
+                                // ✨ MAGIC: Auto-scroll the TOC slider if item goes out of bounds
+                                const itemTop = data.hudElem.offsetTop;
+                                const boxHeight = scrollBox.clientHeight;
+                                const currentScroll = scrollBox.scrollTop;
+
+                                // If item is above view or below view, smooth scroll it into the center
+                                if (
+                                    itemTop < currentScroll ||
+                                    itemTop > currentScroll + boxHeight - 30
+                                ) {
+                                    scrollBox.scrollTo({
+                                        top: itemTop - boxHeight / 2,
+                                        behavior: "smooth",
+                                    });
+                                }
+                            } else {
+                                data.hudElem.classList.remove("active");
+                            }
+                        });
+
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            });
+        };
+
+        // --- 2. SECURE BOOT OVERLAY (Rare Animation) ---
+        const initBootSequence = () => {
+            const isDarkMode =
+                document.body.classList.contains("dark") ||
+                document.documentElement.getAttribute("data-theme") === "dark";
+
+            if (isDarkMode && !sessionStorage.getItem("system_booted")) {
+                const bootScreen = document.createElement("div");
+                bootScreen.className = "boot-screen";
+
+                const textElement = document.createElement("div");
+                textElement.innerText = "INITIALIZING KERNEL ENVIRONMENT...";
+                bootScreen.appendChild(textElement);
+
+                document.body.appendChild(bootScreen);
+
+                // Hardware loading bar animation
+                setTimeout(() => bootScreen.classList.add("loading"), 50);
+
+                setTimeout(() => {
+                    textElement.innerText = "HANDSHAKE COMPLETE // ACCESS GRANTED";
+                    textElement.style.color = "#86efac";
+                }, 800);
+
+                setTimeout(() => {
+                    bootScreen.style.opacity = "0";
+                    setTimeout(() => bootScreen.remove(), 400);
+                    sessionStorage.setItem("system_booted", "true");
+                }, 1200);
+            } else {
+                sessionStorage.setItem("system_booted", "true");
+            }
+        };
+
+        // Initialize features
+        initBootSequence();
+        initTacticalHUD();
+    });
+
+    // --- 3. DEV-TOOLS CONSOLE LOG EASTER EGG ---
+    const bootSequence = [
+        {msg: "INITIATING TERMINAL UPLINK...", delay: 0, color: "#788571"},
+        {msg: "BYPASSING MAINFRAME PROTOCOLS [OK]", delay: 600, color: "#86efac"},
+        {msg: "MOUNTING VOLUME /dev/root...", delay: 1100, color: "#788571"},
+        {msg: ">> ROOT ACCESS SECURED <<", delay: 1800, color: "#5eead4"},
+        {
+            msg: "SYSTEM ONLINE. AWAITING INPUT.",
+            delay: 2400,
+            color: "#f3f4f0",
+            size: "14px",
+        },
+    ];
+
+    bootSequence.forEach((step) => {
+        setTimeout(() => {
+            console.log(
+                `%c${step.msg}`,
+                `color: ${step.color}; font-family: 'JetBrains Mono', monospace; font-size: ${step.size || "11px"}; font-weight: bold;`,
+            );
+        }, step.delay);
+    });
+</script>

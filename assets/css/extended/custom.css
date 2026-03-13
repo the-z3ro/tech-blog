@@ -1,0 +1,293 @@
+/* ============================================
+   PROJECT: PHOSPHOR TERMINAL (PAPERMOD)
+   STYLE: Modern Responsive Tech / Agent UI
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap');
+
+/* 📝 EDIT HERE: CORE DIMENSIONS */
+:root {
+    --main-width: 860px;   /* Width of the main blog content */
+    --hud-width: 250px;    /* Width of the Left Sidebar TOC */
+    --gap-width: 40px;     /* Space between Sidebar and Blog */
+}
+
+/* 📝 EDIT HERE: DARK MODE COLORS (Subtle Sepia/Greenish Coding Vibe) */
+.dark,[data-theme="dark"], :root {
+    --void-bg: #0d110c; 
+    --panel-bg: rgba(18, 22, 16, 0.7);
+    --panel-hover: rgba(22, 28, 20, 0.9);
+    
+    --laser-primary: #86efac;  /* Soft Terminal Green */
+    --laser-secondary: #5eead4; /* Subtle Cyan for contrast */
+    --laser-alert: #fca5a5;    
+    
+    --text-glare: #f3f4f0;
+    --text-main: #c8d1c1;
+    --text-muted: #788571;
+    
+    --grid-color: rgba(134, 239, 172, 0.03);
+    --ui-border: rgba(134, 239, 172, 0.15);
+    --ui-border-glow: rgba(134, 239, 172, 0.4);
+
+    /* PaperMod Overrides */
+    --theme: var(--void-bg);
+    --entry: var(--panel-bg);
+    --primary: var(--text-glare);
+    --secondary: var(--text-main);
+    --tertiary: var(--text-muted);
+    --content: var(--text-main);
+    --hljs-bg: #050605;
+    --code-bg: rgba(0,0,0,0.4);
+    --border: var(--ui-border);
+}
+
+/* 📝 EDIT HERE: LIGHT MODE COLORS (Clean, Minimal) */
+[data-theme="light"] {
+    --theme: #fdfdfc;
+    --entry: #ffffff;
+    --primary: #1a1c19;
+    --secondary: #4a5247;
+    --tertiary: #879183;
+    --content: #2d332b;
+    --border: #e2e8e0;
+    --laser-primary: #15803d; 
+    --ui-border-glow: rgba(21, 128, 61, 0.2);
+}
+
+/* ============================================
+   GLOBAL TYPOGRAPHY & LAYOUT
+   ============================================ */
+body {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.2px;
+    line-height: 1.7;
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 { font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.5px; }
+
+/* Selection Highlight */
+::selection { background: var(--laser-primary); color: var(--void-bg); }
+
+/* Perfectly Centered Main Container */
+.main {
+    max-width: var(--main-width) !important;
+    margin: 0 auto !important;
+    padding: 0 20px;
+    position: relative;
+}
+
+/* ============================================
+   ANIMATIONS: FREQUENT (Links, Nav, Toggles)
+   ============================================ */
+
+/* Sleek Link Hover Glow */
+a { transition: color 0.2s ease, text-shadow 0.2s ease; }
+.dark a:hover { text-shadow: 0 0 8px rgba(134, 239, 172, 0.4); }
+
+/* Menu Items Bracket Animation */
+.menu a { position: relative; padding: 5px 10px; }
+.menu a::before, .menu a::after {
+    content: ''; position: absolute; opacity: 0; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--laser-primary);
+}
+.menu a::before { content: '['; left: -10px; }
+.menu a::after { content: ']'; right: -10px; }
+.menu a:hover::before { opacity: 1; left: 0px; }
+.menu a:hover::after { opacity: 1; right: 0px; }
+
+/* Snappy Theme Toggle Spin */
+#theme-toggle {
+    border: none !important; box-shadow: none !important; background: transparent !important;
+    color: var(--text-muted);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#theme-toggle:hover { color: var(--laser-primary); transform: rotate(180deg); }
+#theme-toggle:active { transform: scale(0.8) rotate(180deg); } /* Click press effect */
+
+/* ============================================
+   ANIMATIONS: OCCASIONAL (Buttons, Cards)
+   ============================================ */
+
+/* The "White Thin Line" Button Sweep Animation */
+button, .button, a.button {
+    position: relative;
+    overflow: hidden;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--primary);
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+/* The sweeping laser line */
+button::before, .button::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 2px;
+    background: var(--text-glare); /* White line */
+    transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2;
+    box-shadow: 0 0 10px var(--text-glare);
+}
+
+button:hover, .button:hover {
+    background: rgba(134, 239, 172, 0.05); /* Subtle inner glow */
+    border-color: var(--laser-primary);
+    box-shadow: 0 0 15px var(--ui-border-glow);
+}
+button:hover::before, .button:hover::before { left: 0; } /* Line sweeps in */
+button:active { transform: translateY(2px); } /* Push down on click */
+
+/* 🎯 Targeting Cards (Post Entries) */
+.dark .post-entry {
+    border: 1px solid transparent;
+    clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+    transition: transform 0.4s ease, background 0.4s ease;
+}
+
+.dark .post-entry::before, .dark .post-entry::after {
+    content: ''; position: absolute; width: 15px; height: 15px;
+    border: 2px solid transparent; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 10;
+}
+.dark .post-entry::before { top: 0; left: 0; border-top-color: var(--border); border-left-color: var(--border); }
+.dark .post-entry::after { bottom: 0; right: 0; border-bottom-color: var(--border); border-right-color: var(--border); }
+
+/* Card Hover Animation */
+.dark .post-entry:hover { transform: translateY(-3px); background: var(--panel-hover); }
+.dark .post-entry:hover::before { border-top-color: var(--laser-secondary); border-left-color: var(--laser-secondary); width: 100%; height: 100%; opacity: 0.2; }
+.dark .post-entry:hover::after { border-bottom-color: var(--laser-secondary); border-right-color: var(--laser-secondary); width: 100%; height: 100%; opacity: 0.2; }
+
+/* CRT Chromatic Hover (Titles) */
+.dark .post-title, .dark .logo a, .dark .post-entry .entry-header { transition: all 0.4s ease; }
+.dark .post-title:hover, .dark .logo a:hover, .dark .post-entry:hover .entry-header {
+    color: #ffffff;
+    text-shadow: -1.5px 0 0 rgba(252, 165, 165, 0.8), 1.5px 0 0 rgba(94, 234, 212, 0.8), 0 0 12px rgba(134, 239, 172, 0.3);
+}
+
+/* ============================================
+   TACTICAL HUD (TOC SIDEBAR) - SCROLL FIX
+   ============================================ */
+html { scroll-behavior: smooth; }
+
+.tactical-toc-hud {
+    position: fixed; top: 120px;
+    left: calc(50vw - (var(--main-width) / 2) - var(--hud-width) - var(--gap-width));
+    width: var(--hud-width);
+    max-height: calc(100vh - 150px);
+    display: flex; flex-direction: column;
+    font-size: 0.65rem; color: var(--tertiary);
+    z-index: 9998; opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.tactical-toc-hud:hover { opacity: 1; }
+
+.hud-header {
+    margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; font-weight: 700;
+    flex-shrink: 0; /* Prevents header from squishing */
+}
+
+#hud-pct { color: var(--laser-primary); }
+.hud-label { letter-spacing: 1px; }
+
+/* 🛠️ FIX: The scrollable list area */
+.hud-list {
+    flex: 1; /* Tells the list to fill remaining space */
+    min-height: 0; /* Crucial for flexbox scrolling */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto; /* Adds the slider! */
+    padding-right: 15px;
+    padding-bottom: 20px; /* Buffer space at bottom */
+}
+
+/* Custom minimal slider for the TOC */
+.hud-list::-webkit-scrollbar { width: 4px; }
+.hud-list::-webkit-scrollbar-thumb { background: var(--ui-border-glow); border-radius: 4px; }
+.hud-list::-webkit-scrollbar-thumb:hover { background: var(--laser-primary); }
+
+/* 🛠️ FIX: Prevent items from squishing */
+.hud-item {
+    flex-shrink: 0; /* THIS STOPS THE SQUISHING BUG */
+    position: relative;
+    padding-left: 15px;
+    color: var(--tertiary);
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    line-height: 1.4;
+}
+
+.hud-item:hover { color: var(--primary); transform: translateX(2px); }
+
+.hud-item.h3 { padding-left: 25px; font-size: 0.6rem; opacity: 0.8; }
+
+.hud-item::before {
+    content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    width: 4px; height: 4px; background: var(--border); border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+/* Active HUD Item */
+.hud-item.active {
+    color: var(--laser-primary);
+    font-weight: bold;
+    transform: translateX(6px); /* Stronger nudge for current section */
+}
+.hud-item.active::before {
+    background: var(--laser-primary);
+    box-shadow: 0 0 10px var(--laser-primary);
+    height: 100%; border-radius: 0; width: 2px;
+}
+
+/* HUD Protective Media Query (Hides HUD if zoomed in to prevent overlap) */
+@media screen and (max-width: 1450px) { .tactical-toc-hud { display: none !important; } }
+
+/* ============================================
+   MICRO-UI COMPONENTS & RARE ANIMATIONS
+   ============================================ */
+
+/* Tactical Grid & Scanline (Rare/Always on) */
+.dark body {
+    background-image: linear-gradient(var(--grid-color) 1px, transparent 1px), linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 40px 40px; background-position: center top;
+}
+.dark body::after {
+    content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 10px;
+    background: linear-gradient(to bottom, transparent, rgba(134, 239, 172, 0.1), transparent);
+    opacity: 0.4; animation: scan 8s linear infinite; pointer-events: none; z-index: 9999;
+}
+
+/* Reading Progress Bar at Top */
+.reading-progress {
+    position: fixed; top: 0; left: 0; height: 2px;
+    background: var(--laser-primary); z-index: 9999;
+    transition: width 0.1s ease-out;
+}
+.dark .reading-progress { box-shadow: 0 0 12px var(--laser-primary); }
+
+/* Secure Boot Overlay */
+.boot-screen {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: var(--void-bg); z-index: 10000;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--laser-primary); font-size: 0.8rem;
+    transition: opacity 0.4s ease-out;
+}
+.boot-screen::after { content: ''; width: 200px; height: 2px; background: var(--ui-border); margin-top: 20px; overflow: hidden; }
+.boot-screen.loading::after { box-shadow: inset 200px 0 0 var(--laser-primary); transition: box-shadow 1s ease-in-out; }
+
+/* Global Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--theme); border-left: 1px solid var(--border); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--tertiary); }
+
+@keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(134, 239, 172, 0.6); } 70% { box-shadow: 0 0 0 6px rgba(134, 239, 172, 0); } 100% { box-shadow: 0 0 0 0 transparent; } }
