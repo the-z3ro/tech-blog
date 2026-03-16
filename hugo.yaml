@@ -1,7 +1,7 @@
 baseURL: "/"
 title: Tech logs
 pagination:
-  pagerSize: 5
+  pagerSize: 10
 theme: PaperMod
 
 enableRobotsTXT: true

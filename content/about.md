@@ -7,6 +7,8 @@ categories: []
 author: "Eshan"
 showToc: false
 TocOpen: false
+showReadingTime: false
+showWordCount: false
 description: ""
 cover:
   image: ""
