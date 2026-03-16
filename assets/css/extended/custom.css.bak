@@ -16,7 +16,7 @@
 .dark,[data-theme="dark"], :root {
     --void-bg: #0d110c; 
     --panel-bg: rgba(18, 22, 16, 0.7);
-    --panel-hover: rgba(22, 28, 20, 0.95);
+    --panel-hover: rgba(22, 28, 20, 0.9);
     
     --laser-primary: #86efac;  /* Soft Terminal Green */
     --laser-secondary: #5eead4; /* Subtle Cyan for contrast */
@@ -98,30 +98,14 @@ a { transition: color 0.2s ease, text-shadow 0.2s ease; }
 .menu a:hover::before { opacity: 1; left: 0px; }
 .menu a:hover::after { opacity: 1; right: 0px; }
 
-/* Clean & Professional Theme Toggle */
+/* Snappy Theme Toggle Spin */
 #theme-toggle {
-    position: relative;
-    border: none !important; 
-    background: transparent !important;
+    border: none !important; box-shadow: none !important; background: transparent !important;
     color: var(--text-muted);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 8px; /* Sleek rounded square */
-    padding: 8px;
-    box-shadow: 0 0 0 1px transparent;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
-#theme-toggle:hover { 
-    color: var(--laser-primary); 
-    background: rgba(134, 239, 172, 0.05) !important;
-    box-shadow: 0 0 0 1px var(--laser-primary), 0 0 12px rgba(134, 239, 172, 0.15) !important;
-    transform: translateY(-2px);
-}
-#theme-toggle:active { 
-    transform: scale(0.92) translateY(0); 
-    box-shadow: 0 0 0 1px var(--laser-primary) !important;
-}
+#theme-toggle:hover { color: var(--laser-primary); transform: rotate(180deg); }
+#theme-toggle:active { transform: scale(0.8) rotate(180deg); } /* Click press effect */
 
 /* ============================================
    ANIMATIONS: OCCASIONAL (Buttons, Cards)
@@ -144,57 +128,48 @@ button::before, .button::before {
     position: absolute;
     top: 0; left: -100%;
     width: 100%; height: 2px;
-    background: var(--text-glare); 
+    background: var(--text-glare); /* White line */
     transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 2;
     box-shadow: 0 0 10px var(--text-glare);
 }
 
 button:hover, .button:hover {
-    background: rgba(134, 239, 172, 0.05);
+    background: rgba(134, 239, 172, 0.05); /* Subtle inner glow */
     border-color: var(--laser-primary);
     box-shadow: 0 0 15px var(--ui-border-glow);
 }
-button:hover::before, .button:hover::before { left: 0; }
-button:active { transform: translateY(2px); }
+button:hover::before, .button:hover::before { left: 0; } /* Line sweeps in */
+button:active { transform: translateY(2px); } /* Push down on click */
 
-/* 🎯 FIXED: The "Flash Run" Spy Agent Animation & Click Issue */
-/* 🎯 OPTION 2: TARGET LOCKED (Fixed) */
-.dark .post-entry, [data-theme="dark"] .post-entry {
-    position: relative; background: var(--panel-bg);
-    border: 1px solid transparent; border-radius: 8px;
-    padding: 2rem; margin-bottom: 2rem;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    z-index: 1; box-shadow: inset 0 0 0 1px var(--border);
+/* 🎯 Targeting Cards (Post Entries) */
+.dark .post-entry {
+    border: 1px solid transparent;
+    clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+    transition: transform 0.4s ease, background 0.4s ease;
 }
 
-.dark .post-entry::before, [data-theme="dark"] .post-entry::before,
-.dark .post-entry::after, [data-theme="dark"] .post-entry::after {
-    content: ''; position: absolute; width: 20px; height: 20px;
-    border: 2px solid transparent; 
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    z-index: 10; pointer-events: none;
+.dark .post-entry::before, .dark .post-entry::after {
+    content: ''; position: absolute; width: 15px; height: 15px;
+    border: 2px solid transparent; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 10;
 }
-.dark .post-entry::before,[data-theme="dark"] .post-entry::before { top: 10px; left: 10px; border-top-color: var(--border); border-left-color: var(--border); }
-.dark .post-entry::after, [data-theme="dark"] .post-entry::after { bottom: 10px; right: 10px; border-bottom-color: var(--border); border-right-color: var(--border); }
+.dark .post-entry::before { top: 0; left: 0; border-top-color: var(--border); border-left-color: var(--border); }
+.dark .post-entry::after { bottom: 0; right: 0; border-bottom-color: var(--border); border-right-color: var(--border); }
 
-.dark .post-entry:hover,[data-theme="dark"] .post-entry:hover {
-    transform: scale(1.02); background: var(--panel-hover);
-    box-shadow: inset 0 0 0 1px rgba(217, 249, 157, 0.2), 0 10px 30px rgba(0,0,0,0.8);
-}
-.dark .post-entry:hover::before, [data-theme="dark"] .post-entry:hover::before { 
-    top: 0; left: 0; border-color: #d9f99d; box-shadow: -2px -2px 10px rgba(217, 249, 157, 0.4);
-}
-.dark .post-entry:hover::after,[data-theme="dark"] .post-entry:hover::after { 
-    bottom: 0; right: 0; border-color: #d9f99d; box-shadow: 2px 2px 10px rgba(217, 249, 157, 0.4);
+/* Card Hover Animation */
+.dark .post-entry:hover { transform: translateY(-3px); background: var(--panel-hover); }
+.dark .post-entry:hover::before { border-top-color: var(--laser-secondary); border-left-color: var(--laser-secondary); width: 100%; height: 100%; opacity: 0.2; }
+.dark .post-entry:hover::after { border-bottom-color: var(--laser-secondary); border-right-color: var(--laser-secondary); width: 100%; height: 100%; opacity: 0.2; }
+
+/* CRT Chromatic Hover (Titles) */
+.dark .post-title, .dark .logo a, .dark .post-entry .entry-header { transition: all 0.4s ease; }
+.dark .post-title:hover, .dark .logo a:hover, .dark .post-entry:hover .entry-header {
+    color: #ffffff;
+    text-shadow: -1.5px 0 0 rgba(252, 165, 165, 0.8), 1.5px 0 0 rgba(94, 234, 212, 0.8), 0 0 12px rgba(134, 239, 172, 0.3);
 }
 
-/* Text glow & Click fix */
-.dark .post-entry > *,[data-theme="dark"] .post-entry > * { position: relative; z-index: 2; }
-.post-entry .entry-link { position: absolute; inset: 0; z-index: 100 !important; cursor: pointer; }
-.dark .post-entry:hover .entry-header h2, [data-theme="dark"] .post-entry:hover .entry-header h2 { color: #d9f99d; text-shadow: 0 0 12px rgba(217, 249, 157, 0.5); }
 /* ============================================
-   TACTICAL HUD (TOC SIDEBAR)
+   TACTICAL HUD (TOC SIDEBAR) - SCROLL FIX
    ============================================ */
 html { scroll-behavior: smooth; }
 
@@ -214,29 +189,32 @@ html { scroll-behavior: smooth; }
 .hud-header {
     margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
     display: flex; justify-content: space-between; font-weight: 700;
-    flex-shrink: 0;
+    flex-shrink: 0; /* Prevents header from squishing */
 }
 
 #hud-pct { color: var(--laser-primary); }
 .hud-label { letter-spacing: 1px; }
 
+/* 🛠️ FIX: The scrollable list area */
 .hud-list {
-    flex: 1;
-    min-height: 0;
+    flex: 1; /* Tells the list to fill remaining space */
+    min-height: 0; /* Crucial for flexbox scrolling */
     display: flex;
     flex-direction: column;
     gap: 10px;
-    overflow-y: auto;
+    overflow-y: auto; /* Adds the slider! */
     padding-right: 15px;
-    padding-bottom: 20px;
+    padding-bottom: 20px; /* Buffer space at bottom */
 }
 
+/* Custom minimal slider for the TOC */
 .hud-list::-webkit-scrollbar { width: 4px; }
 .hud-list::-webkit-scrollbar-thumb { background: var(--ui-border-glow); border-radius: 4px; }
 .hud-list::-webkit-scrollbar-thumb:hover { background: var(--laser-primary); }
 
+/* 🛠️ FIX: Prevent items from squishing */
 .hud-item {
-    flex-shrink: 0;
+    flex-shrink: 0; /* THIS STOPS THE SQUISHING BUG */
     position: relative;
     padding-left: 15px;
     color: var(--tertiary);
@@ -256,10 +234,11 @@ html { scroll-behavior: smooth; }
     transition: all 0.3s ease;
 }
 
+/* Active HUD Item */
 .hud-item.active {
     color: var(--laser-primary);
     font-weight: bold;
-    transform: translateX(6px);
+    transform: translateX(6px); /* Stronger nudge for current section */
 }
 .hud-item.active::before {
     background: var(--laser-primary);
@@ -267,13 +246,14 @@ html { scroll-behavior: smooth; }
     height: 100%; border-radius: 0; width: 2px;
 }
 
+/* HUD Protective Media Query (Hides HUD if zoomed in to prevent overlap) */
 @media screen and (max-width: 1450px) { .tactical-toc-hud { display: none !important; } }
 
 /* ============================================
    MICRO-UI COMPONENTS & RARE ANIMATIONS
    ============================================ */
 
-/* Tactical Grid & Scanline */
+/* Tactical Grid & Scanline (Rare/Always on) */
 .dark body {
     background-image: linear-gradient(var(--grid-color) 1px, transparent 1px), linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
     background-size: 40px 40px; background-position: center top;
@@ -284,20 +264,13 @@ html { scroll-behavior: smooth; }
     opacity: 0.4; animation: scan 8s linear infinite; pointer-events: none; z-index: 9999;
 }
 
-/* Fancy Progress Bar at Top */
+/* Reading Progress Bar at Top */
 .reading-progress {
-    position: fixed; top: 0; left: 0; height: 3px;
-    background: linear-gradient(90deg, transparent, var(--laser-primary)); 
-    z-index: 9999;
+    position: fixed; top: 0; left: 0; height: 2px;
+    background: var(--laser-primary); z-index: 9999;
     transition: width 0.1s ease-out;
 }
-/* The Bright Laser Head at the tip */
-.reading-progress::after {
-    content: ''; position: absolute; top: -2px; right: 0;
-    width: 12px; height: 7px; background: #ffffff;
-    box-shadow: 0 0 10px #ffffff, 0 0 20px var(--laser-primary);
-    border-radius: 4px;
-}
+.dark .reading-progress { box-shadow: 0 0 12px var(--laser-primary); }
 
 /* Secure Boot Overlay */
 .boot-screen {
@@ -317,28 +290,4 @@ html { scroll-behavior: smooth; }
 ::-webkit-scrollbar-thumb:hover { background: var(--tertiary); }
 
 @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
-
-
-/* ============================================
-   📝 EDIT HERE: FONT SIZES (DESKTOP & MOBILE)
-   ============================================ */
-
-/* --- 1. DESKTOP FONT SIZES --- */
-.post-content { font-size: 16px; line-height: 1.8; }
-.post-title { font-size: 2.2rem; }
-.post-content h1 { font-size: 2rem; }
-.post-content h2 { font-size: 1.6rem; }
-.post-content h3 { font-size: 1.3rem; }
-.entry-header h2 { font-size: 1.5rem; }
-.entry-content { font-size: 15px; } 
-
-/* --- 2. MOBILE FONT SIZES --- */
-@media screen and (max-width: 768px) {
-    .post-content { font-size: 15px; }
-    .post-title { font-size: 1.8rem; }
-    .post-content h1 { font-size: 1.7rem; }
-    .post-content h2 { font-size: 1.4rem; }
-    .post-content h3 { font-size: 1.2rem; }
-    .entry-header h2 { font-size: 1.3rem; }
-    .entry-content { font-size: 14px; }
-}
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(134, 239, 172, 0.6); } 70% { box-shadow: 0 0 0 6px rgba(134, 239, 172, 0); } 100% { box-shadow: 0 0 0 0 transparent; } }
