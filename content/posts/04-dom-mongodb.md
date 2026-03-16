@@ -1,5 +1,5 @@
 ---
-title: "04 Dom Mongodb"
+title: "04 : DOM, Why Frontend Frameworks & MongoDB Deep Dive"
 date: 2026-03-13T23:23:33+05:30
 draft: false
 tags: []
@@ -14,8 +14,6 @@ cover:
   alt: ""
   caption: ""
 ---
-
-# 04 : DOM, Why Frontend Frameworks & MongoDB Deep Dive
 
 > **Blog Summary:** Transitions from backend to frontend. Explores raw DOM manipulation, its limitations, and why React exists. Also covers MongoDB/Mongoose in depth with a complete full-stack data model.
 

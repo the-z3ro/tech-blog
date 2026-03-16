@@ -1,5 +1,5 @@
 ---
-title: "05 React Deep Dive"
+title: "05 : React Deep Dive"
 date: 2026-03-13T23:41:11+05:30
 draft: false
 tags: []
@@ -14,8 +14,6 @@ cover:
   alt: ""
   caption: ""
 ---
-
-# 05 : React Deep Dive
 
 > **Blog Summary:** Mastering React's core mental model — state, components, JSX, and re-rendering. Understanding how to structure apps and why React re-renders when and how it does.
 

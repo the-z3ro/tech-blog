@@ -1,5 +1,5 @@
 ---
-title: "01 Js Foundation"
+title: "01 : Js Foundation"
 date: 2026-03-13T23:19:51+05:30
 draft: false
 tags: []
@@ -14,8 +14,6 @@ cover:
   alt: ""
   caption: ""
 ---
-
-# 01 : JavaScript Foundation
 
 > **Blog Summary:** The bedrock of the course. Covers why JS exists, how it runs, and the async programming model that makes JS unique and powerful for web development.
 

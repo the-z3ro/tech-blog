@@ -1,5 +1,5 @@
 ---
-title: "03 Middlewares Auth"
+title: "03 : Middlewares, Authentication, Zod & MongoDB"
 date: 2026-03-13T23:22:09+05:30
 draft: false
 tags: []
@@ -14,8 +14,6 @@ cover:
   alt: ""
   caption: ""
 ---
-
-# 03 : Middlewares, Authentication, Zod & MongoDB
 
 > **Blog Summary:** Adds production patterns to the Express server: middleware chains, JWT-based auth, schema validation with Zod, and persistent storage with MongoDB via Mongoose.
 

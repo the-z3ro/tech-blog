@@ -1,5 +1,5 @@
 ---
-title: "Ai_memory"
+title: "How I built a Human-Like Memory for My Local LLM Without Using Any Special Library"
 date: 2026-03-16T20:25:26+05:30
 draft: false
 tags: []

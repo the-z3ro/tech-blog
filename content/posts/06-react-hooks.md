@@ -1,5 +1,5 @@
 ---
-title: "06 React Hooks"
+title: "06 : React Hooks: useEffect, useMemo, useCallback, useRef"
 date: 2026-03-13T23:41:51+05:30
 draft: false
 tags: []
@@ -14,8 +14,6 @@ cover:
   alt: ""
   caption: ""
 ---
-
-# 06 : React Hooks: useEffect, useMemo, useCallback, useRef
 
 > **Blog Summary:** Deep dive into React's hook system. Covers when and why each hook exists, common pitfalls, reconciliation internals, and performance optimization patterns.
 

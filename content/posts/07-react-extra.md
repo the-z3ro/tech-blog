@@ -1,5 +1,5 @@
 ---
-title: "07 React Extra"
+title: "07 : Routing, Prop Drilling, Context API & Recoil"
 date: 2026-03-13T23:42:32+05:30
 draft: false
 tags: []
@@ -14,8 +14,6 @@ cover:
   alt: ""
   caption: ""
 ---
-
-# 07 : Routing, Prop Drilling, Context API & Recoil
 
 > **Blog Summary:** Covers client-side routing for SPAs, solves the prop drilling problem with Context API, and introduces Recoil as a production-grade state management solution.
 

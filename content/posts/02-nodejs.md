@@ -1,5 +1,5 @@
 ---
-title: "02 Nodejs"
+title: "02 : Node.js, HTTP Servers, Express & Git"
 date: 2026-03-13T23:21:12+05:30
 draft: false
 tags: []
@@ -14,8 +14,6 @@ cover:
   alt: ""
   caption: ""
 ---
-
-# 02 : Node.js, HTTP Servers, Express & Git
 
 > **Blog Summary:** Moves from JS fundamentals to building real backend servers. Covers the Node.js runtime, the HTTP protocol, creating servers with Express, testing with Postman, and version control with Git.
 
