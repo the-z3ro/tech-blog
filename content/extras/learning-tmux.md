@@ -700,6 +700,7 @@ That's it. TPM is just a folder, no system install needed.
 <span class="ck">set -g prefix</span> <span class="cv">C-a</span>
 <span class="ck">unbind</span> <span class="cv">C-b</span>
 <span class="ck">bind</span> <span class="cv">C-a send-prefix</span>
+<span class="ck">unbind</span> <span class="cv">o</span>
 
 <span class="ck">set -g mouse</span> <span class="cv">on</span> <span class="cc"># scroll with mouse, click to focus panes</span>
 <span class="ck">set -g base-index</span> <span class="cv">1</span> <span class="cc"># windows start at 1, not 0</span>
