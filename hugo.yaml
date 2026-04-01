@@ -21,7 +21,7 @@ markup:
       unsafe: true
 
 params:
-  # mainSections: ["posts"]
+  mainSections: ["posts"]
 
   env: production
   description: "A simple learning log"
@@ -62,6 +62,9 @@ menu:
     - name: Home
       url: /
       weight: 5
+    - name: Explore
+      url: /explore
+      weight: 6
     - name: Projects
       url: /projects
       weight: 8
