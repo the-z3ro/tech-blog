@@ -86,7 +86,7 @@ Git does not track changes the way most people imagine. It does not store a list
 
 Three places your code can live at any point in time:
 
-![Branch](/images/gitAndGithub/01git-pic-repo.png)  
+![Repo](/images/gitAndGithub/01git-pic-repo.png)  
 Every single git command either moves data between these three areas or reads from them. Once you internalize this, the output of `git status` becomes completely readable without guessing.
 
 ---
@@ -660,27 +660,7 @@ Rebase is the concept that confuses the most people, but it is actually straight
 
 Rebase takes your commits and replays them one by one on top of a different starting point. The most common use case is updating a feature branch that has fallen behind main.
 
-<div class="dia">
-<div class="dh">before rebase: feature started from B, but main has moved on to D</div>
-<div class="db">
-<div class="bvis">
-<span class="mu">A --- B --- C --- D  </span><span class="gn">← main</span>
-<span class="mu">          \</span>
-<span class="mu">           E --- F  </span><span class="bn">← feature  </span><span class="pt">← HEAD</span>
-</div>
-</div>
-</div>
-
-<div class="dia">
-<div class="dh">after: git rebase main (run from the feature branch)</div>
-<div class="db">
-<div class="bvis">
-<span class="mu">A --- B --- C --- D  </span><span class="gn">← main</span>
-<span class="mu">                  \</span>
-<span class="mu">                   E' --- F'  </span><span class="bn">← feature  </span><span class="pt">← HEAD</span>
-</div>
-</div>
-</div>
+![Rebase](/images/gitAndGithub/04git-rebase.png)
 
 E' and F' are brand new commit objects with the same changes as E and F, but now applied on top of D instead of B. The history looks as if you had started your branch from the latest main all along. Linear and clean.
 
