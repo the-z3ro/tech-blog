@@ -86,21 +86,7 @@ Git does not track changes the way most people imagine. It does not store a list
 
 Three places your code can live at any point in time:
 
-<div class="dia">
-<div class="dh">the three areas every git command works with</div>
-<div class="db">
-<div class="flow">
-<div class="fbox" style="color:#79c0ff;border-color:#1e3a5f"><strong>working directory</strong><br><span style="color:#6e7681;font-size:11px">your actual files<br>on disk right now<br>edit freely here</span></div>
-<div class="farr"><span class="ar">→</span><span class="cmd">git add</span></div>
-<div class="fbox" style="color:#56d364;border-color:#1a3a1a"><strong>staging area</strong><br><span style="color:#6e7681;font-size:11px">a draft of your<br>next commit<br>pick what goes in</span></div>
-<div class="farr"><span class="ar">→</span><span class="cmd">git commit</span></div>
-<div class="fbox" style="color:#f4845f;border-color:#3a1a0a"><strong>repository (.git/)</strong><br><span style="color:#6e7681;font-size:11px">permanent history<br>every commit lives<br>here forever</span></div>
-</div>
-</div>
-</div>
-
-#PICTURE : PROMPT -> "A clean dark-themed technical diagram showing three connected boxes in a horizontal flow layout. Background is #0d1117 (very dark navy). The three boxes are: 1) 'Working Directory' in blue (#79c0ff) with subtitle 'your actual files on disk', 2) 'Staging Area' in green (#56d364) with subtitle 'draft of your next commit', 3) 'Repository (.git/)' in orange (#f4845f) with subtitle 'permanent history'. Between boxes 1 and 2 is a right arrow labeled 'git add' and between boxes 2 and 3 is a right arrow labeled 'git commit'. Each box has a subtle border matching its text color. Font is monospace (JetBrains Mono style). The overall aesthetic is minimal, developer-focused, GitHub dark theme inspired. No gradients, no shadows, flat and clean."
-
+![Branch](/images/gitAndGithub/01git-pic-repo.png)  
 Every single git command either moves data between these three areas or reads from them. Once you internalize this, the output of `git status` becomes completely readable without guessing.
 
 ---
@@ -353,18 +339,9 @@ The `--cached` flag is the key part. Without it, `git rm` deletes the file from 
 
 A branch is just a pointer to a commit. Nothing more. When you create a branch, git creates a new pointer. When you commit on that branch, the pointer moves forward to your new commit. No files are duplicated. No folders are copied. Branching is fast because it is literally just creating a small file that contains a commit hash.
 
-<div class="dia">
 <div class="dh">what branches look like in git's history</div>
-<div class="db">
-<div class="bvis">
-<span class="mu">A --- B --- C</span>  <span class="gn">← main</span>
-<span class="mu">              \</span>
-<span class="mu">               D --- E</span>  <span class="bn">← feature/login</span>  <span class="pt">← HEAD</span>
-</div>
-</div>
-</div>
 
-#PICTURE : PROMPT -> "A clean dark-themed git branch diagram. Background is #0d1117. Shows a horizontal line of circles (commits) labeled A, B, C in muted gray (#6e7681) connected by lines. At commit C, a branch splits diagonally down-right showing commits D and E in blue (#79c0ff). The label 'main' in green (#56d364) points to commit C with an arrow. The label 'feature/login' in blue (#79c0ff) points to commit E. A small orange (#f4845f) 'HEAD' label with an arrow also points to commit E, indicating current position. All text is monospace font. Minimal flat design, no shadows, dark GitHub aesthetic. The branch split is clearly illustrated as a fork in the line."
+![Branch](/images/gitAndGithub/02git-pic-branch.png)
 
 `HEAD` is a pointer to whatever branch you are currently on. When you make a commit, your current branch moves forward. When you switch branches, HEAD just points somewhere else.
 
@@ -614,7 +591,7 @@ By convention:
 - The original repo that you do not own is called **upstream**
 - Your fork on GitHub is called **origin**
 
-#PICTURE : PROMPT -> "A dark-themed diagram showing the GitHub fork and pull request workflow. Background #0d1117. Three boxes arranged in a triangle: Top center box labeled 'upstream repo (original owner)' in orange (#f4845f). Bottom left box labeled 'origin (your fork on GitHub)' in blue (#79c0ff). Bottom right box labeled 'local machine' in green (#56d364). Arrows between them: 1) Arrow from upstream to origin labeled 'fork' in gray. 2) Arrow from origin to local labeled 'git clone' in gray. 3) Arrow from local to origin labeled 'git push' in blue. 4) Arrow from origin to upstream labeled 'Pull Request' in purple (#d2a8ff). 5) Arrow from upstream to local labeled 'git fetch upstream' in orange. All text is monospace JetBrains Mono style. Clean, minimal, flat design. GitHub dark theme aesthetic."
+![Fork](/images/gitAndGithub/03git-fork.png)
 
 <div class="ex">
 <div class="xl">the complete contribution flow, step by step</div>
