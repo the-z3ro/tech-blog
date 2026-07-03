@@ -34,3 +34,40 @@ We will use Git to track the blog platform code from post 01 onward. No theory o
 
 **Git** is the local tool on your machine. It tracks changes, lets you revert, and manages branches. Free, open source, works offline.
 
+**GitHub** is a cloud host for Git repos. It adds a web UI, pull requests, and collaboration. It needs Git underneath.
+
+| Git                    | GitHub                   |
+| ---------------------- | ------------------------ |
+| Installed locally      | Lives in the cloud       |
+| Tracks history         | Hosts history plus UI    |
+| Works without internet | Needs Git repos to host  |
+| `commit` saves locally | `push` uploads to GitHub |
+
+Why both? You commit often locally while building posts API. You push to GitHub to back up and share. If your laptop dies, the pushed copy survives.
+
+Check yours:
+
+```bash
+git --version
+```
+
+If that prints a version, you are ready. If not, install Git from git-scm.com and restart your terminal.
+
+> Try it yourself: run `git --version` and `git status` inside your blog folder vs outside any repo. Notice how the second one complains.
+
+<details>
+<summary>Solution</summary>
+
+```bash
+git --version
+# git version 2.43.0 or similar
+
+mkdir blog-platform && cd blog-platform
+git status
+# fatal: not a git repository, expected because no init yet
+```
+
+Why: `status` only works inside a repo with a `.git` folder. Outside, Git has nothing to report.
+
+Common mistake: running all Git commands from home directory. Always `cd` into your project first.
+
