@@ -144,3 +144,41 @@ git log --oneline
 # shows your two commits so far
 ```
 
+Why: `status` before and after shows the move from working dir to staging to repo.
+
+Common mistake: `git add .` then realizing you staged secrets like `.env`. Check `status` before commit. If you staged too much, `git reset HEAD <file>` unstages without deleting the file.
+
+</details>
+
+## Branching without fear
+
+Main should always run. New work happens on branches.
+
+```bash
+git branch feature/posts-api
+git checkout feature/posts-api
+# shortcut for both:
+git checkout -b feature/auth
+
+# after work is done, back to main and merge
+git checkout main
+git merge feature/posts-api
+```
+
+Picture:
+
+```
+main:    C1 --- C2 --- C3 --- C4 --- Merge
+                   \                /
+feature:            A1 --- A2 -----
+```
+
+Why branch for each blog post feature? When auth breaks, posts API on main still works. You can switch branches instead of commenting out half your server.
+
+Naming I use in this series: `feature/posts-crud`, `feature/auth-jwt`, `fix/cors-error`. The prefix tells me what kind of change it is before I open it.
+
+> Try it yourself: create a branch, add a line to README, commit, merge back to main, delete the branch.
+
+<details>
+<summary>Solution</summary>
+
