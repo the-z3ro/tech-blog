@@ -108,3 +108,39 @@ git log --oneline
 git diff
 ```
 
+Why `add` then `commit` instead of one save step? Staging lets you craft small clean commits. I stage only the blog API files, commit that, then stage the frontend files separately. Reviewers and future me can read that history.
+
+Start your blog repo now:
+
+```bash
+mkdir blog-platform
+cd blog-platform
+npm init -y
+git init
+echo "node_modules/" > .gitignore
+echo "# Blog platform" > README.md
+git add .
+git commit -m "init: blog platform starter"
+```
+
+Why `.gitignore` first? Without it you will commit `node_modules` once and your repo becomes huge. Adding the ignore before the first commit avoids that mess.
+
+> Try it yourself: create `post.js` with one console log, stage only that file, commit, then check log.
+
+<details>
+<summary>Solution</summary>
+
+```bash
+echo 'console.log("hello blog")' > post.js
+git status
+# shows post.js as untracked
+
+git add post.js
+git status
+# shows post.js staged, ready to commit
+
+git commit -m "feat: add post helper"
+git log --oneline
+# shows your two commits so far
+```
+
