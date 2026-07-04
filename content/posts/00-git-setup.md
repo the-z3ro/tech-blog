@@ -71,3 +71,40 @@ Why: `status` only works inside a repo with a `.git` folder. Outside, Git has no
 
 Common mistake: running all Git commands from home directory. Always `cd` into your project first.
 
+</details>
+
+## The core flow: edit, stage, commit, push
+
+Files move through four places:
+
+```
+Working Directory -> Staging Area -> Local Repo -> Remote on GitHub
+   edit files        git add         git commit      git push
+```
+
+**Blob, Tree, Commit** sound scary but map cleanly:
+
+- Blob holds file content, addressed by hash
+- Tree holds a folder listing of blobs and sub trees
+- Commit holds a snapshot plus a pointer to its parent, forming a linked list of history
+
+Daily commands for the series:
+
+```bash
+# Start or get code
+git init
+git clone <url>
+
+# Daily loop
+git status
+git add .
+git add server.js
+git commit -m "feat: add posts CRUD"
+git push origin main
+git pull origin main
+
+# Look around
+git log --oneline
+git diff
+```
+
