@@ -182,3 +182,40 @@ Naming I use in this series: `feature/posts-crud`, `feature/auth-jwt`, `fix/cors
 <details>
 <summary>Solution</summary>
 
+```bash
+git checkout -b feature/readme-note
+echo "Posts API on port 3000" >> README.md
+git add README.md
+git commit -m "docs: note API port"
+git checkout main
+git merge feature/readme-note
+git branch -d feature/readme-note
+git log --oneline
+```
+
+Why: merge brings the branch commits into main history. Delete after merge keeps the list clean.
+
+Common mistake: merging with uncommitted changes on main. Commit or stash first, or Git refuses to switch branches to protect your work.
+
+</details>
+
+## Merge conflicts, what they look like and how to fix
+
+Conflicts happen when two branches edit the same lines differently. Git cannot pick for you, so it marks the file.
+
+```
+<<<<<<< HEAD
+const PORT = 3000;
+=======
+const PORT = 5000;
+>>>>>>> feature/auth
+```
+
+Top part is your current branch. Bottom part is incoming. Markers show the split.
+
+Fix flow:
+
+1. Open the file, pick one side or combine, delete all markers
+2. Test the file still runs
+3. Stage and commit the fix
+
