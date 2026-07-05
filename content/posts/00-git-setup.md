@@ -219,3 +219,41 @@ Fix flow:
 2. Test the file still runs
 3. Stage and commit the fix
 
+```bash
+git status
+# shows unmerged paths
+
+# edit server.js to keep one PORT line, save
+
+git add server.js
+git commit -m "fix: resolve port conflict"
+git log --merge
+```
+
+Why manual fix instead of auto pick? PORT 3000 vs 5000 changes Postman URLs, env docs, and frontend fetch strings. Only you know which one the team agreed on.
+
+To see conflicts clearly I use `git status` for files plus `git diff` for content. `git log --merge` shows which commits clashed, useful when the conflict spans many files.
+
+## Patterns worth copying
+
+**Commit small and readable.** `feat: add GET posts` beats `stuff`. I follow type plus scope: `feat`, `fix`, `docs`, `chore`. Future search with `git log --oneline --grep=feat` actually works.
+
+**Pull before push on shared branches.** `git pull origin main` before `git push` surfaces conflicts early when they are small. Pushing blind on a busy repo creates bigger merges later.
+
+**Never commit secrets.** `.env` with JWT secrets and Mongo URIs stays local. Commit `.env.example` with fake values so others know what to create. If you already pushed a secret, rotate it. Deleting the file later does not remove it from history.
+
+**Check status and diff before every commit.** Ten seconds here prevents committing debug logs, large dumps, or half finished auth middleware.
+
+## Projects
+
+### 1. Blog repo from zero to GitHub
+
+Push the starter from this post to a real remote.
+
+Requirements:
+
+- Local repo with README, .gitignore, post.js
+- At least 2 commits with clear messages
+- GitHub repo connected as origin, pushed main
+- README lists how to run `node post.js`
+
