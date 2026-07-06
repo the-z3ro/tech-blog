@@ -257,3 +257,46 @@ Requirements:
 - GitHub repo connected as origin, pushed main
 - README lists how to run `node post.js`
 
+<details>
+<summary>Solution with explanation</summary>
+
+```bash
+# local already done above, now connect remote
+# create empty repo on github.com first, copy its URL
+
+git remote add origin https://github.com/YOU/blog-platform.git
+git branch -M main
+git push -u origin main
+```
+
+Why `-u` on first push: links local main to remote main so later `git push` and `git pull` need no args.
+
+Common mistake: pushing over HTTPS without login cached. Use a personal access token as password, or switch remote to SSH after setup.
+
+</details>
+
+### 2. Feature branch for posts API
+
+Simulate real teamwork solo. Build posts CRUD on a branch, merge via a clean commit.
+
+Requirements:
+
+- Branch `feature/posts-crud` from main
+- Add `server.js` with GET posts from post 03
+- Commit on the branch, merge to main, tag the merge with log check
+- Delete the branch after merge
+
+<details>
+<summary>Solution with explanation</summary>
+
+```bash
+git checkout -b feature/posts-crud
+# add server.js from post 03 here
+git add server.js
+git commit -m "feat: add posts list API"
+git checkout main
+git merge feature/posts-crud -m "merge: posts list API"
+git branch -d feature/posts-crud
+git log --oneline --graph -5
+```
+
