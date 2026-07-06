@@ -300,3 +300,55 @@ git branch -d feature/posts-crud
 git log --oneline --graph -5
 ```
 
+Why merge with a message: the graph shows where the feature landed. Later `git log --graph` reads like a story of the blog build.
+
+Common mistake: leaving 10 stale branches. List with `git branch` monthly and prune merged ones. Cluttered branch lists slow everyone down.
+
+</details>
+
+### 3. Conflict drill and fix
+
+Force a conflict on purpose so the real one does not scare you.
+
+Requirements:
+
+- On main, set PORT to 3000 and commit
+- On new branch, set PORT to 5000 and commit
+- Merge and resolve to 3000, commit the fix
+- Verify server still starts
+
+<details>
+<summary>Solution with explanation</summary>
+
+```bash
+git checkout -b feature/port-change
+# edit index.js PORT to 5000
+git add index.js
+git commit -m "chore: try port 5000"
+
+git checkout main
+# ensure index.js PORT is 3000, commit if needed
+
+git merge feature/port-change
+# conflict markers appear in index.js
+# open file, keep 3000, delete markers, save
+node index.js
+# check it boots, stop with Ctrl+C
+git add index.js
+git commit -m "fix: keep port 3000 for docs consistency"
+git branch -d feature/port-change
+```
+
+Why drill this: first conflict in a real deadline feels bad. After one safe drill, you know the markers are just text to edit, not corruption.
+
+Common mistake: committing with markers still in the file. The server then crashes on start with a syntax error. Always run the file once before committing the resolution.
+
+</details>
+
+Use this workflow from the next post onward. Every backend and frontend change gets a branch, a small commit, and a push. When auth breaks in post 04, you will thank this post.
+
+## If lost / If bored
+
+- If lost: `not a git repository` means you are outside `blog-platform`, run `pwd` and `cd` back in. `permission denied on push` means check remote with `git remote -v` and token.
+- If bored: skip to Project 3 conflict drill, it teaches more than rereading commands.
+- Keep for next: this `blog-platform` folder plus GitHub remote. Post 01 code lives here too.
