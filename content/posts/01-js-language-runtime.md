@@ -146,3 +146,42 @@ In 1995 Brendan Eich built a small scripting language for Netscape in about 10 d
 
 That language became JavaScript. And browsers agreed on one thing: they would all run JS natively. No plugin needed.
 
+That single decision is why JS won. Python is great, Java is solid, but your browser does not run them without extra work. JS runs everywhere a web page runs.
+
+Then in 2009 Ryan Dahl did something clever. He took the V8 engine out of Chrome, added file system and network APIs with C++, and called it Node.js. Suddenly the same language could run on servers too.
+
+```
+Chrome V8 (compiles JS to machine code)
+  + file access, http, crypto, os
+  = Node.js runtime
+```
+
+So now you get:
+
+- One language for frontend and backend
+- A huge package ecosystem with npm
+- An async model that fits I/O heavy work like APIs and blogs really well
+
+A newer runtime called Bun does the same job. It is written in Zig and is faster for many tasks. I still use Node in this series because almost every job and tutorial uses Node, and the concepts transfer directly.
+
+Why not just learn Python for backend and JS for frontend? You can. Many teams do. I picked JS for both because sharing types, validation logic, and even small helper functions between frontend and backend saves a lot of pain once your blog platform grows.
+
+## How to run JS while following this series
+
+You have three places, and you will use all three:
+
+1. **Browser console** for quick checks. Good for `typeof`, string ops, small loops.
+2. **Node files** for everything backend related. `node file.js` from your project folder.
+3. **Vite + React** from post 06 onward for UI code.
+
+If `node -v` prints a version, you are ready. If not, install LTS from nodejs.org, restart your terminal, and check again. I wasted an hour once because my terminal still pointed to an old install. A restart fixed it.
+
+## Primitives, and the blog data they model
+
+JS has a small set of basic types. Everything else is built from them.
+
+```js
+// Number, both integers and decimals are just number
+let views = 250;
+let readingTime = 4.5;
+
