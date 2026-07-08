@@ -110,3 +110,39 @@ Old explanation stops here and says JS is slower but flexible. That was true in 
 
 Modern JS engines like V8 (the engine inside Chrome and Node) use **just-in-time compilation**. They watch your code while it runs, find the hot parts that run a lot, and compile those parts to fast machine code on the fly. So JS feels interpreted when you use it, but under the hood it compiles at runtime.
 
+That is why Node can be fast enough for real backends even though you never run a build command during development.
+
+Why should you care? Because this explains two things you will see later:
+
+1. The first run of a loop can be slower than later runs. V8 is still learning and optimizing.
+2. Syntax errors still stop everything, but type related bugs slip through. JS will happily run `let x = 5; x = "hello"` because nothing checks types before running. That flexibility is the reason TypeScript exists, which we cover in post 10 of the original series.
+
+> Try it yourself: run a file with a syntax error (like a missing bracket) and then run a file with `let views = 100; views = "lot of views"; console.log(views)`. See which one stops and which one runs fine.
+
+<details>
+<summary>Solution</summary>
+
+```js
+// broken.js - syntax error, nothing runs
+console.log("hello";
+
+// flexible.js - runs fine, prints the string
+let views = 100;
+views = "lot of views";
+console.log(views);
+```
+
+`node broken.js` throws immediately. `node flexible.js` prints `lot of views`.
+
+Why this happens: syntax is checked before running. Types are not. JS lets the type change at runtime. That is called dynamic typing, covered below.
+
+Common mistake: thinking the second file should error. It will not. If you want that error, you need TypeScript with `let views: number = 100`.
+
+</details>
+
+## Why JavaScript and not something else
+
+In 1995 Brendan Eich built a small scripting language for Netscape in about 10 days. The goal was simple: make web pages interactive. Buttons, forms, small animations.
+
+That language became JavaScript. And browsers agreed on one thing: they would all run JS natively. No plugin needed.
+
