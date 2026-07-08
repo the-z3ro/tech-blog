@@ -74,3 +74,39 @@ console.log("Eshan - 2026");
 console.log("My first post is live");
 ```
 
+Run with `node hello.js`. You should see both lines.
+
+What this shows: Node reads the file and runs it top to bottom. No compile command needed.
+
+Common mistake: trying `node hello` without the `.js` extension, or running it from the wrong folder. If you get "cannot find module", check `pwd` and `ls` first. You need to be in the same folder as the file.
+
+</details>
+
+## Compiled vs interpreted, and where JS actually sits
+
+This confused me for a long time because tutorials put JS in one box and move on.
+
+**Compiled** languages need a separate build step before you can run anything. You write C++, then you compile it to a binary, then you run that binary.
+
+```bash
+# C++ flow
+# Step 1: write main.cpp
+# Step 2: compile it
+g++ main.cpp -o main
+# Step 3: run the binary
+./main
+```
+
+If there is a type error or syntax error, the compiler stops at step 2. No binary gets created.
+
+**Interpreted** languages skip that manual step. You just run the file.
+
+```bash
+# JS flow
+node index.js
+```
+
+Old explanation stops here and says JS is slower but flexible. That was true in 1998. It is not the full story now.
+
+Modern JS engines like V8 (the engine inside Chrome and Node) use **just-in-time compilation**. They watch your code while it runs, find the hot parts that run a lot, and compile those parts to fast machine code on the fly. So JS feels interpreted when you use it, but under the hood it compiles at runtime.
+
