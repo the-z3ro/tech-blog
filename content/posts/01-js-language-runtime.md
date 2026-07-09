@@ -260,3 +260,40 @@ Common mistake: `post.tags[2]` after only two items gives `undefined`, not an er
 
 You will see all three in old code. In new code I only use `let` and `const`.
 
+```js
+let views = 10;
+views = 11; // fine, let allows reassignment
+
+const author = "eshan";
+// author = "someone"; // TypeError, const forbids reassignment
+
+var oldWay = "avoid this";
+```
+
+Why avoid `var`? It has function scope instead of block scope and it hoists in a confusing way. I inherited a file full of `var` once and spent half a day tracing why a loop counter leaked outside the loop. `let` and `const` stay inside the `{}` block where you define them.
+
+One catch that trips everyone: `const` does not make objects immutable. It only stops reassignment.
+
+```js
+const post = { views: 10 };
+post.views = 11; // allowed, same object, different field
+post.tags = []; // allowed
+
+// post = {}; // not allowed, that is reassignment
+```
+
+If you want to stop field changes too, you need `Object.freeze`, but that is rare in app code. In React we handle this with spread copies instead of mutation, which we cover in post 07.
+
+Rule I follow: default to `const`. Switch to `let` only when you know the variable will be reassigned, like a counter or accumulator.
+
+## Equality, and why === saves you at 2am
+
+JS has two equality operators and they are not the same.
+
+```js
+console.log(5 == "5"); // true, JS converts types then compares
+console.log(5 === "5"); // false, no conversion, type must match
+console.log(null == undefined); // true, weird legacy rule
+console.log(null === undefined); // false
+```
+
