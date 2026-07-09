@@ -224,3 +224,39 @@ console.log(post["views"]); // 250, bracket notation, same thing
 post.views = 251; // update a field
 ```
 
+Why two ways to access fields? Dot notation is shorter. Bracket notation lets you use a variable as the key, which you need when the key name comes from user input or a loop.
+
+```js
+let field = "title";
+console.log(post[field]); // Hello world, works
+// console.log(post.field) would look for a key literally called field
+```
+
+> Try it yourself: make a `post` object with title, views, and tags. Log the second tag. Add a new tag. Change views to 0 and log the whole object.
+
+<details>
+<summary>Solution</summary>
+
+```js
+let post = {
+  title: "Learning JS",
+  views: 10,
+  tags: ["js", "basics"],
+};
+
+console.log(post.tags[1]); // basics
+post.tags.push("blog");
+post.views = 0;
+console.log(post);
+```
+
+Why it works: arrays are zero indexed, so index 1 is the second item. `push` mutates the same array.
+
+Common mistake: `post.tags[2]` after only two items gives `undefined`, not an error. JS does not throw for out of bounds access. Always check `length` if you are unsure.
+
+</details>
+
+## let, const, var, and what to actually use
+
+You will see all three in old code. In new code I only use `let` and `const`.
+
