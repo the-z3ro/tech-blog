@@ -185,3 +185,42 @@ JS has a small set of basic types. Everything else is built from them.
 let views = 250;
 let readingTime = 4.5;
 
+// String, single, double, or backticks all work
+let author = "eshan";
+let title = "My first post";
+let greeting = `Hello, ${author}!`; // backticks let you embed variables
+
+// Boolean
+let isPublished = true;
+let hasPaid = false;
+
+// Null is explicit empty, undefined is declared but no value yet
+let coverImage = null; // we know there is no image
+let lastEdited; // undefined, nobody set it yet
+console.log(lastEdited); // undefined
+```
+
+A question that bugged me early: what is the difference between `null` and `undefined`? In real code I use `null` when I mean "intentionally empty", like no cover image. `undefined` usually means "I forgot to set this" or "this field does not exist yet". APIs often return `undefined` when you access a missing field.
+
+Reference types are built from primitives:
+
+```js
+// Array
+let tags = ["javascript", "backend", "react"];
+console.log(tags[0]); // javascript
+tags.push("nodejs"); // adds to end
+console.log(tags.length); // 4
+
+// Object, this is your bread and butter for blog data
+let post = {
+  title: "Hello world",
+  author: "eshan",
+  views: 250,
+  isPublished: false,
+};
+
+console.log(post.title); // Hello world
+console.log(post["views"]); // 250, bracket notation, same thing
+post.views = 251; // update a field
+```
+
