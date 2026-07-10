@@ -297,3 +297,40 @@ console.log(null == undefined); // true, weird legacy rule
 console.log(null === undefined); // false
 ```
 
+`==` does type coercion before comparing. That sounds helpful until your blog view count `"0"` equals `false` and your draft filter breaks in production.
+
+I just use `===` and `!==` everywhere. No exceptions. It is one less thing to think about during code review.
+
+> Try it yourself: predict `0 == false`, `0 === false`, `"" == false`, `"" === false` before running them.
+
+<details>
+<summary>Solution</summary>
+
+```js
+console.log(0 == false); // true
+console.log(0 === false); // false
+console.log("" == false); // true
+console.log("" === false); // false
+```
+
+Why: `==` converts both sides to a common type. Empty string and zero both coerce to false. `===` checks type first and stops early.
+
+Common mistake: using `== null` to check for both null and undefined on purpose. Some codebases do this as a shortcut. I prefer explicit `x === null || x === undefined` because it is obvious to the next person reading.
+
+</details>
+
+## Functions, the unit of reuse
+
+A function takes input, does something, returns output. You already know this, but the three syntaxes confused me at first.
+
+```js
+// Declaration, hoisted, you can call it before the line where it is defined
+function readingTime(words) {
+  return Math.ceil(words / 200);
+}
+
+// Expression, stored in a variable, not hoisted the same way
+const slugify = function (title) {
+  return title.toLowerCase().replaceAll(" ", "-");
+};
+
