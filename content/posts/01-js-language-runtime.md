@@ -334,3 +334,46 @@ const slugify = function (title) {
   return title.toLowerCase().replaceAll(" ", "-");
 };
 
+// Arrow, shorter, current default in React code
+const isLongPost = (words) => words > 1000;
+
+// Calling them
+console.log(readingTime(450)); // 3
+console.log(slugify("Hello World")); // hello-world
+console.log(isLongPost(450)); // false
+```
+
+Why do we bother wrapping code in functions? I learned this when I copied the same reading time math into three files and then fixed a bug in only two of them. That third file stayed wrong for weeks.
+
+```js
+// Repeated logic, hard to fix later
+console.log(Math.ceil(300 / 200));
+console.log(Math.ceil(800 / 200));
+console.log(Math.ceil(1200 / 200));
+
+// One function, fix once
+function readingTime(words) {
+  return Math.ceil(words / 200);
+}
+console.log(readingTime(300));
+console.log(readingTime(800));
+console.log(readingTime(1200));
+```
+
+That is the **DRY principle**. Do not repeat yourself. If you type the same logic twice, make it a function.
+
+About arrow functions: they are shorter, but they also handle `this` differently. They do not get their own `this`. For the blog helpers above it does not matter. It starts to matter inside objects and React class components. Since we use function components and hooks in this series, you can default to arrows for small helpers and normal functions for top level components without much friction.
+
+> Try it yourself: write `formatViews(n)` that returns `"1.2k"` for 1200 and `"950"` for 950. Hint: if n is 1000 or more, divide by 1000 and add k.
+
+<details>
+<summary>Solution</summary>
+
+```js
+function formatViews(n) {
+  if (n >= 1000) {
+    return `${(n / 1000).toFixed(1)}k`;
+  }
+  return `${n}`;
+}
+
