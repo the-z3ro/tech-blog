@@ -377,3 +377,42 @@ function formatViews(n) {
   return `${n}`;
 }
 
+console.log(formatViews(1200)); // 1.2k
+console.log(formatViews(950)); // 950
+```
+
+Why it works: template literals let us mix numbers and strings cleanly. `toFixed(1)` keeps one decimal.
+
+Common mistake: returning a number in one branch and a string in another. Here both branches return strings because of the backticks. That keeps the return type consistent, which matters a lot once we add TypeScript later.
+
+</details>
+
+## Loops without fear
+
+You need three patterns. Everything else is a variation.
+
+```js
+// 1. Classic for, best when you need the index or a count
+let totalViews = 0;
+let daily = [120, 80, 200];
+for (let i = 0; i < daily.length; i++) {
+  totalViews += daily[i];
+}
+console.log(totalViews); // 400
+
+// 2. While, best when you do not know how many times upfront
+let drafts = 3;
+while (drafts > 0) {
+  console.log(`Publishing draft, ${drafts} left`);
+  drafts--;
+}
+
+// 3. forEach and for...of, best for reading arrays cleanly
+let posts = ["intro", "async", "react"];
+posts.forEach((p) => console.log(p));
+
+for (let p of posts) {
+  console.log(`Post: ${p}`);
+}
+```
+
