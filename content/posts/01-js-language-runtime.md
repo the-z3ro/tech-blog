@@ -416,3 +416,40 @@ for (let p of posts) {
 }
 ```
 
+Why `let i` and not `var i` in the loop? With `var`, the `i` variable survives after the loop and can clash with another loop later in the same function. With `let`, it stays inside the loop. I hit this bug with nested loops fetching paginated posts. The inner loop overwrote the outer counter.
+
+Later in post 02 we replace many manual loops with `map` and `filter`. Manual loops are still the right tool when you need to break early, sum things up, or retry something.
+
+> Try it yourself: given `[120, 0, 310, 45]`, sum only the days with more than 50 views using a for loop.
+
+<details>
+<summary>Solution</summary>
+
+```js
+let daily = [120, 0, 310, 45];
+let total = 0;
+for (let i = 0; i < daily.length; i++) {
+  if (daily[i] > 50) {
+    total += daily[i];
+  }
+}
+console.log(total); // 430
+```
+
+Why: the `if` filters inside the loop. `120 + 310` is 430. The other two days are skipped.
+
+Common mistake: starting at `i = 1` and skipping the first day, or using `<= daily.length` and reading one past the end (gives `undefined`, and `total + undefined` becomes `NaN`).
+
+</details>
+
+## Static vs dynamic typing, in one sitting
+
+JS is **dynamically typed**. Types are decided while the code runs, and they can change.
+
+```js
+let status = 200; // number for now
+status = "ok"; // now a string, JS allows it
+```
+
+A **statically typed** language checks types before running. TypeScript adds that layer on top of JS.
+
