@@ -528,3 +528,40 @@ What to build:
 - Print total views across all posts
 - Print the most viewed post title
 
+<details>
+<summary>Solution with explanation</summary>
+
+```js
+let posts = [
+  { title: "Hello world", words: 450, views: 120, tags: ["intro"] },
+  { title: "Async JS", words: 1200, views: 310, tags: ["js", "async"] },
+  { title: "React basics", words: 800, views: 45, tags: ["react"] },
+];
+
+function readingTime(words) {
+  return Math.ceil(words / 200);
+}
+
+let totalViews = 0;
+let topPost = posts[0];
+
+for (let post of posts) {
+  console.log(`${post.title}: ${readingTime(post.words)} min`);
+  totalViews += post.views;
+  if (post.views > topPost.views) {
+    topPost = post;
+  }
+}
+
+console.log(`Total views: ${totalViews}`);
+console.log(`Top post: ${topPost.title}`);
+```
+
+Why it is structured this way: `readingTime` is pure and reusable. The loop does one pass for all three answers instead of three separate loops. `topPost` starts as the first post so the comparison always has something valid.
+
+Common mistake: setting `topPost = {}` and then reading `topPost.views` which is `undefined`. Comparisons with `undefined` give wrong results. Always seed with a real element when finding a max.
+
+</details>
+
+### 2. Slug and validator
+
