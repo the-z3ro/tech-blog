@@ -453,3 +453,39 @@ status = "ok"; // now a string, JS allows it
 
 A **statically typed** language checks types before running. TypeScript adds that layer on top of JS.
 
+```ts
+let status: number = 200;
+status = "ok"; // compile error, stops before running
+```
+
+Why does this matter for a blog platform? Because view counts, form inputs, and API responses are all strings at the boundary and numbers inside. Without checks, `"5" + 1` becomes `"51"` instead of `6`, and your pagination breaks. TypeScript catches that before deploy. We go deep on this in the TypeScript post, but keep this example in mind until then.
+
+## Single threaded, and why async exists
+
+JS has one call stack. It does one thing at a time.
+
+Think of it like cooking alone in a small kitchen. You can only chop one thing at a time. But you can put water on to boil, then chop vegetables while you wait. You are not doing two things at once. You delegated the boiling to the stove and switched back when it needed you.
+
+JS does the same:
+
+- Long work like file reads and network calls gets delegated to the browser or OS
+- JS keeps running other code
+- When the delegated work finishes, its callback gets queued and runs when the stack is free
+
+```
+JS runs code -> hits fetch -> hands it to browser -> keeps running
+Browser finishes -> puts callback in queue -> JS picks it up when free
+```
+
+Why only one thread? It keeps the mental model simple. No locks, no races on the same variable in basic code. The cost is that a slow loop blocks everything. If you run a huge `for` loop on the main thread, your page freezes until it finishes. That is why we never block, and why post 02 exists.
+
+## Patterns I wish someone told me earlier
+
+These are not syntax rules. They are habits that separate code that works once from code that survives real edits.
+
+**Name things from your domain, not from the tutorial.** `calculateSum(a, b)` teaches nothing. `readingTime(words)` tells the next person what it is for. When I renamed my helpers to `formatViews`, `slugify`, `isPublished`, my own code got easier to find a month later.
+
+**Small pure functions beat clever one liners.** A function that takes input and returns output without touching outside state is easy to test and easy to reuse. If your function reads a global `posts` array and also updates the DOM, split it. One part computes, one part renders.
+
+**Check types at the boundary.** Form inputs, URL params, API bodies. Everything from outside is a string until proven otherwise. Convert with `Number()` explicitly and check `Number.isNaN`. Do not trust `==` to fix it for you.
+
