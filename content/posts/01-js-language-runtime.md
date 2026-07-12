@@ -489,3 +489,42 @@ These are not syntax rules. They are habits that separate code that works once f
 
 **Check types at the boundary.** Form inputs, URL params, API bodies. Everything from outside is a string until proven otherwise. Convert with `Number()` explicitly and check `Number.isNaN`. Do not trust `==` to fix it for you.
 
+**Default to const, use early returns.** Deep nesting hides bugs. I now write guards at the top and keep the happy path flat.
+
+```js
+function publishPost(post) {
+  if (!post.title) return { ok: false, error: "Missing title" };
+  if (post.words < 50) return { ok: false, error: "Too short" };
+  return { ok: true, value: post };
+}
+```
+
+**Do not mutate inputs you did not create.** `post.views++` inside a helper changes the caller's object. Return a new value instead. React will force this habit later with state, but starting now saves surprises.
+
+```js
+// Harder to trace
+function bumpViews(post) {
+  post.views += 1;
+}
+
+// Easier to trace
+function bumpedViews(post) {
+  return { ...post, views: post.views + 1 };
+}
+```
+
+## Projects
+
+These are built to use only what this post taught. No async, no backend yet. Each one is something you can keep in your repo.
+
+### 1. Blog stats helper
+
+Build a small script that takes an array of posts and prints a summary. This forces you to use objects, arrays, functions, and loops together.
+
+What to build:
+
+- Each post has `title`, `words`, `views`, `tags`
+- Print reading time for each post (200 words per minute, rounded up)
+- Print total views across all posts
+- Print the most viewed post title
+
