@@ -565,3 +565,43 @@ Common mistake: setting `topPost = {}` and then reading `topPost.views` which is
 
 ### 2. Slug and validator
 
+Build `slugify(title)` and `validatePost(post)`. This is real production logic. Every blog needs URL slugs and input checks before saving.
+
+Requirements:
+
+- `slugify` lowercases, trims, replaces spaces with `-`, removes anything that is not a letter, number, or `-`
+- `validatePost` returns `{ ok: true }` or `{ ok: false, error: "reason" }`
+- A valid post needs a title of 5 or more chars, at least 50 words, and at least one tag
+
+<details>
+<summary>Solution with explanation</summary>
+
+```js
+function slugify(title) {
+  return title
+    .toLowerCase()
+    .trim()
+    .replaceAll(" ", "-")
+    .replace(/[^a-z0-9-]/g, "");
+}
+
+function validatePost(post) {
+  if (!post.title || post.title.length < 5) {
+    return { ok: false, error: "Title too short" };
+  }
+  if (!post.words || post.words < 50) {
+    return { ok: false, error: "Post too short, need 50+ words" };
+  }
+  if (!post.tags || post.tags.length === 0) {
+    return { ok: false, error: "Add at least one tag" };
+  }
+  return { ok: true };
+}
+
+console.log(slugify("  Hello World! My First Post  ")); // hello-world-my-first-post
+console.log(validatePost({ title: "Hi", words: 10, tags: [] }));
+// { ok: false, error: Title too short }
+console.log(validatePost({ title: "Learning JS", words: 600, tags: ["js"] }));
+// { ok: true }
+```
+
