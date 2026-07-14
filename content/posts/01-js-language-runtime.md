@@ -605,3 +605,52 @@ console.log(validatePost({ title: "Learning JS", words: 600, tags: ["js"] }));
 // { ok: true }
 ```
 
+Why: the regex `/[^a-z0-9-]/g` strips punctuation after lowercasing, so URLs stay clean. Early returns keep validation flat and readable. Each check returns immediately with a specific reason, which is exactly what your API will send back to the frontend later.
+
+Common mistake: chaining replaces in the wrong order, like stripping spaces before converting them to `-`. Order matters here. Spaces to dashes first, then remove leftovers.
+
+</details>
+
+### 3. View formatter with edge cases
+
+Build `formatViews(n)` that handles real data mess: strings from inputs, negatives, huge numbers.
+
+Requirements:
+
+- Accept numbers and numeric strings like `"1200"`
+- Return `"0"` for anything invalid or negative
+- `999` stays `"999"`, `1200` becomes `"1.2k"`, `2500000` becomes `"2.5M"`
+- No `==`, only `===`
+
+<details>
+<summary>Solution with explanation</summary>
+
+```js
+function formatViews(input) {
+  let n = Number(input);
+  if (Number.isNaN(n) || n < 0) return "0";
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+  return `${Math.floor(n)}`;
+}
+
+console.log(formatViews(950)); // 950
+console.log(formatViews("1200")); // 1.2k
+console.log(formatViews("oops")); // 0
+console.log(formatViews(-5)); // 0
+console.log(formatViews(2500000)); // 2.5M
+```
+
+Why: `Number(input)` makes the boundary explicit. Form inputs are always strings, so this function accepts reality instead of crashing. `Number.isNaN` is safer than global `isNaN` because it does not coerce first.
+
+Common mistake: using `parseInt` without checking `NaN`, or returning numbers sometimes and strings other times. Pick one return type. Here everything returns a string because this value goes straight to UI text.
+
+</details>
+
+Next up is async JS. Callbacks, promises, async await, and the event loop. That is where JS stops feeling like Python with different syntax and starts feeling like its own thing. We will fetch real blog posts there, and the function and loop habits from this post will carry straight over.
+
+## If lost / If bored
+
+- If lost: `cannot find module` means wrong folder, check `pwd` and `ls`. `undefined` on array access means index past `length`.
+- If bored: skip to Project 2 slug plus validator, it is the most production like slice here.
+- Keep for next: `readingTime`, `slugify`, `formatViews` helpers. Post 02 reuses the same posts array shape.
