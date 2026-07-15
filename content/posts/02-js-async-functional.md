@@ -34,3 +34,40 @@ The problem was I treated async code like sync code. This post is the fix. We wi
 
 A **callback** is a function you pass as an argument to another function, so it can be called later.
 
+```js
+function doMath(a, b, operation) {
+  return operation(a, b);
+}
+
+function add(x, y) {
+  return x + y;
+}
+
+console.log(doMath(3, 4, add)); // 7
+console.log(doMath(3, 4, (x, y) => x - y)); // -1
+console.log(doMath(3, 4, (x, y) => x ** y)); // 81
+```
+
+Why pass a function instead of just calling it? Because `doMath` does not need to know the exact math. It only needs to know when to run it. That "call this when you are done" idea is the base of all async JS.
+
+In blog code I use this for formatting. One function loads posts, another decides how to display each one.
+
+```js
+function renderPosts(posts, format) {
+  for (let p of posts) {
+    console.log(format(p));
+  }
+}
+
+let posts = [
+  { title: "Hello world", views: 120 },
+  { title: "Async JS", views: 310 },
+];
+
+renderPosts(posts, (p) => `${p.title} (${p.views} views)`);
+```
+
+If you are wondering why we do not just put the format logic inside `renderPosts`, it is reuse. Same loop, different output for admin view vs public view.
+
+> Try it yourself: write `filterPosts(posts, test)` where `test` is a callback that returns true or false. Use it to keep only posts with more than 100 views.
+
