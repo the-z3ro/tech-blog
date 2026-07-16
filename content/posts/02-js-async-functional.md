@@ -71,3 +71,41 @@ If you are wondering why we do not just put the format logic inside `renderPosts
 
 > Try it yourself: write `filterPosts(posts, test)` where `test` is a callback that returns true or false. Use it to keep only posts with more than 100 views.
 
+<details>
+<summary>Solution</summary>
+
+```js
+function filterPosts(posts, test) {
+  let out = [];
+  for (let p of posts) {
+    if (test(p)) out.push(p);
+  }
+  return out;
+}
+
+let posts = [
+  { title: "a", views: 20 },
+  { title: "b", views: 200 },
+];
+
+console.log(filterPosts(posts, (p) => p.views > 100));
+// [{ title: b, views: 200 }]
+```
+
+Why it works: `test` runs once per post. The loop only collects matches.
+
+Common mistake: forgetting `return` inside the arrow callback. `(p) => { p.views > 100 }` returns undefined because of the braces. Use `(p) => p.views > 100` without braces, or add explicit `return`.
+
+</details>
+
+## Sync blocking vs async delegation
+
+Sync code stops everything until it finishes. That is fine for math. It is terrible for files and network.
+
+```js
+console.log("1: Start");
+
+setTimeout(function () {
+  console.log("3: Callback fires after 1 second");
+}, 1000);
+
