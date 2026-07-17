@@ -109,3 +109,39 @@ setTimeout(function () {
   console.log("3: Callback fires after 1 second");
 }, 1000);
 
+console.log("2: This runs immediately");
+
+// Output order:
+// 1: Start
+// 2: This runs immediately
+// 3: Callback fires after 1 second
+```
+
+When I first saw this I thought the output order was a bug. It is not. `setTimeout` hands the timer to the browser, JS keeps running the next line, and the callback runs later.
+
+Same with files in Node. Starter seed, create this file first to run the snippet:
+
+```bash
+# Full file seed, save as data.txt in blog-platform
+# Hello blog file demo
+# Second line for testing reads
+```
+
+```js
+const fs = require("fs");
+
+fs.readFile("data.txt", "utf8", function (error, content) {
+  if (error) {
+    console.log("Error reading file:", error);
+    return;
+  }
+  console.log("File contents:", content);
+});
+
+console.log("This runs before file is read!");
+```
+
+Why does Node use callbacks here instead of just returning the content? Because reading from disk takes time. If it blocked, your whole server would freeze for every blog post read. With callbacks, the server handles other requests while waiting.
+
+> Try it yourself: predict the order of these three logs before running. Then run and check.
+
