@@ -145,3 +145,40 @@ Why does Node use callbacks here instead of just returning the content? Because 
 
 > Try it yourself: predict the order of these three logs before running. Then run and check.
 
+<details>
+<summary>Solution</summary>
+
+```js
+console.log("A");
+setTimeout(() => console.log("C"), 0);
+console.log("B");
+// A, B, C
+```
+
+Even with `0` delay, `C` prints last. Why: `setTimeout` always goes through the queue. It never runs inline, even if the wait is zero.
+
+Common mistake: adding longer timeouts to "fix" ordering, like waiting 2 seconds hoping data arrives. That is flaky. The right fix is promises or await, covered below.
+
+</details>
+
+## Event loop, the one mental model worth memorizing
+
+JS is single threaded. One call stack. One thing at a time. So how does it handle 50 blog readers at once?
+
+It delegates. The browser or Node does the slow work, JS moves on, and a queue holds finished callbacks until the stack is free.
+
+```
+Call Stack        Browser or OS         Callback Queue
+main()      ->    setTimeout timer
+                  file read
+                  fetch posts
+                  When done: push callback to queue
+                  Event loop: if stack empty, move queue to stack
+```
+
+**Key rule:** a callback only runs when the call stack is completely empty.
+
+Play with http://latentflip.com/loupe once. Watch the stack, queue, and loop animate. I watched it three times before it stuck. Seeing `setTimeout` sit in Web APIs while the stack clears made more sense than any paragraph.
+
+One detail tutorials skip: there are actually two queues. Microtasks (promise callbacks) run before macrotasks (setTimeout, I/O). That means this prints in a surprising order:
+
