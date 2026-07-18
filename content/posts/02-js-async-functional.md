@@ -224,3 +224,40 @@ function wait(ms) {
   });
 }
 
+wait(1000)
+  .then(function (result) {
+    console.log(result);
+    return wait(2000);
+  })
+  .then(function () {
+    console.log("Two more seconds passed");
+  })
+  .catch(function (error) {
+    console.log("Something went wrong:", error);
+  });
+```
+
+No nesting. Each `.then` returns a new promise, so the chain stays flat. One `.catch` at the end handles errors from any step.
+
+For blog data, the same shape looks like this:
+
+```js
+function fetchPosts() {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([
+        { id: 1, title: "Hello world", views: 120 },
+        { id: 2, title: "Async JS", views: 310 },
+      ]);
+    }, 800);
+  });
+}
+
+fetchPosts()
+  .then((posts) => posts.filter((p) => p.views > 100))
+  .then((popular) => console.log(popular))
+  .catch((e) => console.log("Fetch failed:", e));
+```
+
+Why return inside `.then`? Whatever you return becomes the input of the next `.then`. Forget the `return` and the next step gets `undefined`. I debugged that exact bug for an hour.
+
