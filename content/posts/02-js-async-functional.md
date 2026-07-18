@@ -182,3 +182,45 @@ Play with http://latentflip.com/loupe once. Watch the stack, queue, and loop ani
 
 One detail tutorials skip: there are actually two queues. Microtasks (promise callbacks) run before macrotasks (setTimeout, I/O). That means this prints in a surprising order:
 
+```js
+setTimeout(() => console.log("timeout"), 0);
+Promise.resolve().then(() => console.log("promise"));
+console.log("sync");
+// sync, promise, timeout
+```
+
+Why: `Promise.then` goes to the microtask queue, which the loop drains first. You do not need to memorize this for daily work, but when your logs look out of order, this is usually why.
+
+## Callback hell, and why we left it
+
+Nested callbacks work for one level. They collapse after three.
+
+```js
+setTimeout(function () {
+  console.log("After 1 second");
+  setTimeout(function () {
+    console.log("After 2 more seconds");
+    setTimeout(function () {
+      console.log("After 3 more seconds");
+    }, 3000);
+  }, 2000);
+}, 1000);
+```
+
+Real version of this: fetch author, then fetch their posts, then fetch comments for each post, each inside the last callback. Indentation grows right, error handling repeats at every level, and you cannot return a value to the top.
+
+I wrote auth + posts + comments exactly like this once. Adding one retry broke all three levels. That pain is why promises exist.
+
+## Promises, async code you can chain
+
+A **Promise** is an object that represents a future value. It starts as pending, then becomes fulfilled or rejected.
+
+```js
+function wait(ms) {
+  return new Promise(function (resolve, reject) {
+    setTimeout(function () {
+      resolve(`Done waiting ${ms}ms`);
+    }, ms);
+  });
+}
+
