@@ -261,3 +261,44 @@ fetchPosts()
 
 Why return inside `.then`? Whatever you return becomes the input of the next `.then`. Forget the `return` and the next step gets `undefined`. I debugged that exact bug for an hour.
 
+> Try it yourself: chain two `wait` calls so the total wait is 3 seconds, then log "done". Add a `.catch` that logs errors.
+
+<details>
+<summary>Solution</summary>
+
+```js
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(() => resolve(ms), ms));
+}
+
+wait(1000)
+  .then((ms) => {
+    console.log(`waited ${ms}`);
+    return wait(2000);
+  })
+  .then((ms) => console.log(`waited ${ms}, done`))
+  .catch((e) => console.log("Error:", e));
+```
+
+Why: each `return wait(...)` pauses the chain until that promise settles. The value passes forward.
+
+Common mistake: nesting instead of chaining, like calling `wait` inside `.then` without returning it. That runs but the outer chain does not wait for it. Always `return` the inner promise.
+
+</details>
+
+## Async await, same promises with cleaner syntax
+
+`async await` is not a new system. It is cleaner syntax over promises. I write almost all new code this way.
+
+```js
+async function main() {
+  try {
+    const result = await wait(1000);
+    console.log(result);
+    await wait(2000);
+    console.log("Two more seconds passed");
+  } catch (error) {
+    console.log("Error:", error);
+  }
+}
+
