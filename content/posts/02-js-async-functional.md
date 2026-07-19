@@ -302,3 +302,42 @@ async function main() {
   }
 }
 
+main();
+```
+
+Three rules that cover 95 percent of usage:
+
+1. `async` makes a function return a promise
+2. `await` pauses only that function until the promise settles, other code keeps running
+3. Wrap awaits in `try catch` for errors
+
+Blog version with fetch. Reading example with fake URL, runnable localhost version lives in Projects below with `http://localhost:3000/posts`:
+
+```js
+async function showPopularPosts() {
+  try {
+    const res = await fetch("https://api.example.com/posts");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    let popular = data.posts.filter((p) => p.views > 100);
+    console.log(popular);
+  } catch (e) {
+    console.log("Could not load posts:", e.message);
+  }
+}
+```
+
+Why two awaits? `fetch` resolves when headers arrive. `res.json()` resolves when the body is fully read and parsed. Skipping the second await gives you a pending promise instead of data. I console logged a promise object three times before learning this.
+
+A confusion I had: does `await` block the whole app? No. It pauses only the current `async` function. Other requests, timers, and clicks keep working. Think of it as that function stepping aside while the kitchen timer runs.
+
+> Try it yourself: rewrite the promise chain from the last exercise using async await with try catch.
+
+<details>
+<summary>Solution</summary>
+
+```js
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(() => resolve(ms), ms));
+}
+
