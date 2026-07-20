@@ -341,3 +341,43 @@ function wait(ms) {
   return new Promise((resolve) => setTimeout(() => resolve(ms), ms));
 }
 
+async function run() {
+  try {
+    let a = await wait(1000);
+    console.log(`waited ${a}`);
+    let b = await wait(2000);
+    console.log(`waited ${b}, done`);
+  } catch (e) {
+    console.log("Error:", e);
+  }
+}
+
+run();
+```
+
+Why: same waits, flat code. No `.then` nesting.
+
+Common mistake: calling `await` outside an `async` function. That is a syntax error in most setups. Either wrap in `async function` or use top level await only where your runtime allows it (modern Node and browser modules do, plain script files often do not).
+
+</details>
+
+## Fetching together with Promise.all
+
+Sequential awaits are easy to read but slow when calls do not depend on each other. Fetching a post and its author can happen at the same time.
+
+```js
+async function loadPostPage(id) {
+  try {
+    let [post, comments] = await Promise.all([
+      fetch(`https://api.example.com/posts/${id}`).then((r) => r.json()),
+      fetch(`https://api.example.com/posts/${id}/comments`).then((r) =>
+        r.json(),
+      ),
+    ]);
+    console.log(post.title, comments.length);
+  } catch (e) {
+    console.log("One of the calls failed:", e.message);
+  }
+}
+```
+
