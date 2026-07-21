@@ -381,3 +381,39 @@ async function loadPostPage(id) {
 }
 ```
 
+Why `Promise.all`? It runs both fetches in parallel and waits for both. Two 400ms calls take about 400ms together instead of 800ms in sequence.
+
+Catch: if one promise rejects, `Promise.all` rejects immediately. If you need all results even when some fail, use `Promise.allSettled`. I use `all` for page critical data and `allSettled` for optional widgets like related posts.
+
+## Map, filter, and reduce, the trio that replaces most loops
+
+You can write everything with `for`. But after fetching posts, you will transform and filter them constantly. These three cover that.
+
+```js
+let posts = [
+  { title: "Hello world", views: 120, tags: ["intro"] },
+  { title: "Async JS", views: 310, tags: ["js"] },
+  { title: "Draft", views: 5, tags: ["js"] },
+];
+
+// map transforms each element, returns same length array
+let titles = posts.map((p) => p.title);
+// ["Hello world", "Async JS", "Draft"]
+
+// filter keeps matches, returns shorter or equal array
+let popular = posts.filter((p) => p.views > 100);
+// first two posts only
+
+// reduce folds everything into one value, needs an initial value
+let totalViews = posts.reduce((sum, p) => sum + p.views, 0);
+// 435
+
+// Chain them, this is the daily pattern
+let popularTitles = posts
+  .filter((p) => p.views > 100)
+  .map((p) => p.title.toUpperCase());
+// ["HELLO WORLD", "ASYNC JS"]
+```
+
+Why the `0` at the end of reduce? That is the starting sum. Without it, reduce uses the first element as the start, which breaks on empty arrays and mixes types. I always pass it explicitly.
+
