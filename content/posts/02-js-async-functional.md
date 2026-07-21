@@ -417,3 +417,40 @@ let popularTitles = posts
 
 Why the `0` at the end of reduce? That is the starting sum. Without it, reduce uses the first element as the start, which breaks on empty arrays and mixes types. I always pass it explicitly.
 
+Two more you will see in real code:
+
+```js
+let firstPopular = posts.find((p) => p.views > 100); // first match or undefined
+let hasDraft = posts.some((p) => p.views < 10); // true if any match
+let allPublished = posts.every((p) => p.views >= 0); // true if all match
+```
+
+Why not just use `filter[0]` instead of `find`? `find` stops at the first match. `filter` scans everything. On a list of 10k posts that difference shows.
+
+> Try it yourself: from the posts array above, get total views of posts tagged `js` using filter plus reduce in one chain.
+
+<details>
+<summary>Solution</summary>
+
+```js
+let posts = [
+  { title: "Hello world", views: 120, tags: ["intro"] },
+  { title: "Async JS", views: 310, tags: ["js"] },
+  { title: "Draft", views: 5, tags: ["js"] },
+];
+
+let jsViews = posts
+  .filter((p) => p.tags.includes("js"))
+  .reduce((sum, p) => sum + p.views, 0);
+
+console.log(jsViews); // 315
+```
+
+Why: filter first narrows to js posts, reduce then sums. Order matters for speed. Filter before map or reduce so you process fewer items.
+
+Common mistake: forgetting `return` in braces version: `.map((p) => { p.title })` returns array of undefined. Either drop braces or add return.
+
+</details>
+
+## Patterns I use on real async code
+
