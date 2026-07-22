@@ -454,3 +454,40 @@ Common mistake: forgetting `return` in braces version: `.map((p) => { p.title })
 
 ## Patterns I use on real async code
 
+**Always handle the error path first.** Every `fetch` can fail. Every `json()` can throw on bad data. I write `try catch` before I write the happy path now. Production APIs return 500s, tokens expire, users go offline mid request.
+
+**Do not mix callbacks and promises in one function.** Pick one style per function. Mixed code is where ordering bugs hide. If an old library gives callbacks, wrap it once in a promise helper and use await everywhere else.
+
+```js
+// One wrapper at the edge, clean awaits inside
+function readFileAsync(path) {
+  const fs = require("fs");
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, "utf8", (err, data) => {
+      if (err) reject(err);
+      else resolve(data);
+    });
+  });
+}
+
+async function loadDraft() {
+  let text = await readFileAsync("draft.txt");
+  console.log(text.length);
+}
+```
+
+**Keep async functions small and named by outcome.** `loadPostPage`, `fetchComments`, `publishPost`. Not `handleData` or `doStuff`. When a stack trace shows the name, you want to know what failed without opening the file.
+
+**Never trust network data shape.** `data.posts` might be missing, null, or a single object instead of an array after a backend change. I guard with defaults before mapping.
+
+```js
+let list = Array.isArray(data.posts) ? data.posts : [];
+let titles = list.map((p) => p.title ?? "Untitled");
+```
+
+The `??` only falls back on null or undefined, not on `0` or empty string. That matters for view counts where zero is valid.
+
+**Arrow functions and `this` still bite in callbacks.** Inside a plain `setTimeout(function () { ... })`, `this` is not your object. Arrow keeps outer `this`. In React function components this rarely matters, but in Node classes and old Express handlers it does. When in doubt I use arrows for inline callbacks.
+
+## Projects
+
