@@ -491,3 +491,49 @@ The `??` only falls back on null or undefined, not on `0` or empty string. That 
 
 ## Projects
 
+All three run with plain Node. No paid APIs. Each one forces async plus array methods together.
+
+### 1. Delayed blog reader
+
+Build `fetchPosts()` that simulates network with `setTimeout`, then display popular titles with reading time.
+
+Requirements:
+
+- `fetchPosts` returns a promise that resolves after 800ms with 4 posts
+- Each post has `title`, `words`, `views`
+- Use async await to load, filter views over 100, map to strings like `"TITLE - 3 min"`
+- Handle errors with try catch
+
+<details>
+<summary>Solution with explanation</summary>
+
+```js
+function fetchPosts() {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([
+        { title: "Hello world", words: 450, views: 120 },
+        { title: "Async JS", words: 1200, views: 310 },
+        { title: "Draft notes", words: 100, views: 5 },
+        { title: "React basics", words: 800, views: 200 },
+      ]);
+    }, 800);
+  });
+}
+
+function readingTime(words) {
+  return Math.ceil(words / 200);
+}
+
+async function showPopular() {
+  try {
+    let posts = await fetchPosts();
+    let lines = posts
+      .filter((p) => p.views > 100)
+      .map((p) => `${p.title.toUpperCase()} - ${readingTime(p.words)} min`);
+    console.log(lines);
+  } catch (e) {
+    console.log("Load failed:", e.message);
+  }
+}
+
