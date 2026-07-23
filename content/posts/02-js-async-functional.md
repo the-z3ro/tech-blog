@@ -617,3 +617,59 @@ Implement a tiny `MyPromise` style helper plus a retry wrapper. This cements how
 
 Requirements:
 
+- Write `wait(ms, shouldFail)` that resolves after ms or rejects if shouldFail is true
+- Write `withRetry(fn, times)` that calls an async fn and retries on failure up to times
+- Test with a flaky fetch that fails twice then succeeds
+- Use only promises and async await, no external libs
+
+<details>
+<summary>Solution with explanation</summary>
+
+```js
+function wait(ms, shouldFail = false) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (shouldFail) reject(new Error(`Failed after ${ms}ms`));
+      else resolve(`ok in ${ms}ms`);
+    }, ms);
+  });
+}
+
+async function withRetry(fn, times) {
+  let lastError;
+  for (let i = 0; i <= times; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastError = e;
+      console.log(`Attempt ${i + 1} failed, retrying...`);
+    }
+  }
+  throw lastError;
+}
+
+let attempts = 0;
+async function flakyFetch() {
+  attempts++;
+  let shouldFail = attempts < 3;
+  return wait(300, shouldFail);
+}
+
+withRetry(flakyFetch, 5)
+  .then((r) => console.log("Success:", r))
+  .catch((e) => console.log("All retries failed:", e.message));
+```
+
+Why the loop works: `await` inside `for` pauses each attempt. Return on success exits early. Throw after loop preserves the last real error instead of a generic one.
+
+Common mistake: using `.forEach` with async callbacks for retries. `forEach` does not wait. Use `for` or `for of` when order and waiting matter.
+
+</details>
+
+Next is Node, HTTP, and Express. We take these async habits and build a real blog API with them. GET posts, POST new drafts, proper status codes, tested with Postman. The `fetchPosts` fakes above become real endpoints you can call from a frontend.
+
+## If lost / If bored
+
+- If lost: promise object logged instead of data means missing second `await` on `res.json()`. Order `A,B,C` with zero timeout is correct, timers always queue.
+- If bored: skip to Project 2 parallel dashboard, it shows why `Promise.all` matters for speed.
+- Keep for next: `wait`, `withRetry`, filter plus map chains. Post 03 handlers reuse the same shapes.
