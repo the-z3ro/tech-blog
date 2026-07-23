@@ -581,3 +581,39 @@ function fetchComments(id) {
   );
 }
 
+function timeout(ms) {
+  return new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("Slow network")), ms),
+  );
+}
+
+async function showDashboard(id) {
+  try {
+    let [post, comments] = await Promise.race([
+      Promise.all([fetchPost(id), fetchComments(id)]),
+      timeout(2000),
+    ]);
+    let totalLikes = comments.reduce((sum, c) => sum + c.likes, 0);
+    console.log(
+      `${post.title}: ${comments.length} comments, ${totalLikes} likes`,
+    );
+  } catch (e) {
+    console.log("Dashboard failed:", e.message);
+  }
+}
+
+showDashboard(2);
+```
+
+Why `Promise.race` with timeout: real apps cannot hang forever. Racing the load against a timer gives you control. `Promise.all` inside the race still runs both fetches in parallel.
+
+Common mistake: awaiting fetches one by one (`await fetchPost` then `await fetchComments`) which takes 1200ms instead of 700ms. If neither needs the other result, run them together.
+
+</details>
+
+### 3. Mini promise from scratch
+
+Implement a tiny `MyPromise` style helper plus a retry wrapper. This cements how `.then` chaining and errors actually flow.
+
+Requirements:
+
