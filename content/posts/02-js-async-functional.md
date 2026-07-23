@@ -537,3 +537,47 @@ async function showPopular() {
   }
 }
 
+showPopular();
+```
+
+Why it is shaped this way: fetch is isolated so you can swap the fake timer for real `fetch` later without touching display logic. Filter before map keeps the transform small. Async await keeps error handling in one place.
+
+Common mistake: forgetting `await` and trying to `.filter` a promise. `fetchPosts().filter` throws because promises have no filter method. Always await first, then treat the result as an array.
+
+</details>
+
+### 2. Parallel author dashboard
+
+Load a post and its comments in parallel, then combine. This teaches `Promise.all` plus reduce for stats.
+
+Requirements:
+
+- `fetchPost(id)` resolves after 500ms with `{ id, title, views }`
+- `fetchComments(id)` resolves after 700ms with array of `{ text, likes }`
+- Load both with `Promise.all`, print title, comment count, total likes via reduce
+- Add a 2 second timeout race: if loading takes longer, show "Slow network" (hint: `Promise.race`)
+
+<details>
+<summary>Solution with explanation</summary>
+
+```js
+function fetchPost(id) {
+  return new Promise((resolve) =>
+    setTimeout(() => resolve({ id, title: "Async JS", views: 310 }), 500),
+  );
+}
+
+function fetchComments(id) {
+  return new Promise((resolve) =>
+    setTimeout(
+      () =>
+        resolve([
+          { text: "Great post", likes: 12 },
+          { text: "Confusing part on queues", likes: 3 },
+          { text: "Saved", likes: 8 },
+        ]),
+      700,
+    ),
+  );
+}
+
