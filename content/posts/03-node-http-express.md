@@ -72,3 +72,40 @@ What can Node do for our blog? A lot, but we care about one thing first: **HTTP 
 <details>
 <summary>Solution</summary>
 
+```bash
+node -e "console.log(process.version)"
+# v20.x.x
+
+node -e "console.log(typeof window)"
+# undefined
+```
+
+Why: `process` exists only in Node. `window` exists only in browsers. Same language, different runtime APIs. This is why `document` code crashes in Node and `fs` code crashes in the browser.
+
+Common mistake: copying browser fetch + `localStorage` code into Node and wondering why `localStorage` is missing. In Node, persist with files or a DB, not `localStorage`.
+
+</details>
+
+## HTTP, the function call over network
+
+**HTTP** is how clients and servers talk. The browser is usually the client. Your Express app is the server.
+
+```
+Browser or Client              Server on localhost:3000
+  |                                        |
+  |  Request: method, URL, headers, body   |
+  | -------------------------------------> |
+  |                                        |  run route logic
+  |  Response: status code, headers, body  |
+  | <------------------------------------- |
+```
+
+I like to read HTTP as a function call:
+
+| Function idea | HTTP version                              |
+| ------------- | ----------------------------------------- |
+| Function name | URL route like `/posts`                   |
+| Arguments     | Query params, route params, headers, body |
+| Function body | Your Express handler                      |
+| Return value  | Response JSON plus status code            |
+
