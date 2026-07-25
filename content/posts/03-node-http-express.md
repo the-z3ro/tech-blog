@@ -34,3 +34,41 @@ By the end you will have `GET`, `POST`, `PUT`, `DELETE` working on your machine,
 
 **ECMAScript** is the spec. It defines `let`, `const`, `function`, `Date`, `Promise`, and the rest of the core language. It is a document, not a program you can run.
 
+A runtime implements that spec and adds extra APIs for its world.
+
+```
+Browser JS:
+  ECMAScript core
+  + document, window
+  + fetch
+  + localStorage
+  + setTimeout
+
+Node.js:
+  ECMAScript core
+  + fs (files)
+  + http (servers)
+  + path, crypto, os
+  + process
+```
+
+How Node was born is simple once you see it. Chrome has V8, a C++ engine that compiles JS to machine code. Ryan Dahl took V8 out of the browser and wrapped it with OS level code for files and network. That wrapper is Node. It is not a language. It is a place to run JS with backend powers.
+
+Check yours:
+
+```bash
+node -v
+npm -v
+```
+
+If `node -v` prints like `v20.11.0`, you are ready. If not, install LTS from nodejs.org and restart your terminal. I once debugged for an hour only to find my terminal still used an old Node from another installer.
+
+You will hear about Bun too. Bun is a newer runtime written in Zig. It runs most Node code and is faster at startup and package installs. I use Node here because jobs, hosting, and most docs still assume Node. What you learn transfers directly.
+
+What can Node do for our blog? A lot, but we care about one thing first: **HTTP servers**. CLI tools, scripts, and build tools are nice. Servers pay the bills.
+
+> Try it yourself: run `node -e "console.log(process.version)"` and `node -e "console.log(typeof window)"`. What does the second one print and why?
+
+<details>
+<summary>Solution</summary>
+
