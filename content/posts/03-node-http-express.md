@@ -109,3 +109,47 @@ I like to read HTTP as a function call:
 | Function body | Your Express handler                      |
 | Return value  | Response JSON plus status code            |
 
+What happens when you visit a URL in full:
+
+1. Browser parses the URL
+2. DNS lookup turns `example.com` into an IP, like contacts turning a name into a phone number
+3. TCP plus TLS handshake opens a secure channel
+4. Browser sends the HTTP request
+5. Server runs logic and responds
+6. Browser renders the response
+
+You do not need to memorize step 3 for daily work. You need to know step 2 exists, because when DNS fails you get a lookup error before your server ever sees a request.
+
+## Methods and status codes, the contract
+
+Methods say what kind of action you want. For our blog:
+
+```
+GET     read data, no body in practice
+POST    create new post, has body
+PUT     replace a post fully
+PATCH   update part of a post
+DELETE  remove a post
+```
+
+Blog mapping I actually use:
+
+- `GET /posts` list all drafts and published
+- `POST /posts` create one, body has title and content
+- `PUT /posts/:id` replace title and content fully
+- `PATCH /posts/:id` flip `published` from false to true
+- `DELETE /posts/:id` remove it
+
+Status codes tell the client what happened without parsing text:
+
+```
+200 OK, GET worked
+201 Created, POST worked
+400 Bad Request, client sent wrong shape
+401 Unauthorized, no login or bad token
+403 Forbidden, logged in but not allowed
+404 Not Found, route or id does not exist
+411 Length Required, we use it for missing fields in this series
+500 Internal Error, our server crashed
+```
+
