@@ -153,3 +153,39 @@ Status codes tell the client what happened without parsing text:
 500 Internal Error, our server crashed
 ```
 
+Note on 411: strict HTTP reserves 411 for missing Content-Length. Here 411 follows the course convention so validation errors line up across posts 03 to 05 and frontend checks stay consistent. Prod standard for bad shapes is 400. Both branch the same way with `res.ok`, only the number differs.
+
+Why care about codes if you also send JSON? Because clients branch on codes. Frontend shows a login screen on 401, a not found page on 404, and retries on 500. If you return 200 for everything, every client has to parse your message strings. That breaks fast.
+
+> Try it yourself: which code for "created a post", "post id does not exist", "no token sent", "server threw"? No code yet, just the numbers.
+
+<details>
+<summary>Solution</summary>
+
+- Created a post: `201`
+- Post id does not exist: `404`
+- No token sent: `401`
+- Server threw: `500`
+
+Why: codes group by first digit. 2 means success, 4 means client messed up, 5 means server messed up. Pick the specific one inside the group.
+
+Common mistake: returning 200 with `{ error: "not found" }`. Frontend `fetch` treats 200 as success unless you check the body manually. Use real codes so `res.ok` works.
+
+</details>
+
+## First Express server, routes that do something
+
+Install once per project:
+
+```bash
+npm init -y
+npm install express
+```
+
+Minimal server with the four input styles you will use daily:
+
+```js
+// index.js
+const express = require("express");
+const app = express();
+
