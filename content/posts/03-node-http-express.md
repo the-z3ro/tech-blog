@@ -189,3 +189,39 @@ Minimal server with the four input styles you will use daily:
 const express = require("express");
 const app = express();
 
+// Parses JSON bodies into req.body, without this req.body stays undefined
+app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.json({ message: "Blog API running" });
+});
+
+// Body: POST /posts with JSON { title, content }
+app.post("/posts", (req, res) => {
+  const { title, content } = req.body;
+  if (!title || !content) {
+    return res.status(411).json({ error: "title and content required" });
+  }
+  res.status(201).json({ created: true, title });
+});
+
+// Query: GET /sum?a=5&b=3, best for filters and search
+app.get("/sum", (req, res) => {
+  const a = Number(req.query.a);
+  const b = Number(req.query.b);
+  if (Number.isNaN(a) || Number.isNaN(b)) {
+    return res.status(400).json({ error: "a and b must be numbers" });
+  }
+  res.json({ result: a + b });
+});
+
+// Params: GET /posts/123, best for ids
+app.get("/posts/:id", (req, res) => {
+  res.json({ postId: req.params.id });
+});
+
+app.listen(3000, () => {
+  console.log("Server on http://localhost:3000");
+});
+```
+
