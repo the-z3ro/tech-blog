@@ -225,3 +225,41 @@ app.listen(3000, () => {
 });
 ```
 
+Run with `node index.js`, then open `http://localhost:3000/` in your browser. Browsers can only do GET from the address bar, so use Postman or curl for POST next.
+
+Why `express.json()` first? Express does not parse bodies by default. Without that line, `req.body` is undefined even if the client sent perfect JSON. I forget this every few months and stare at undefined for ten minutes.
+
+Query vs params vs body still confuses people, so here is how I pick:
+
+- Query `?q=react&limit=5` for optional filters, search, pagination
+- Params `/posts/:id` for which resource, required id
+- Body for new or updated data, JSON object
+- Headers for tokens and metadata, not business data
+
+> Try it yourself: add `GET /greet?name=Alice` that returns `{ message: "Hello, Alice!" }`. Default to "Guest" when name is missing.
+
+<details>
+<summary>Solution</summary>
+
+```js
+app.get("/greet", (req, res) => {
+  const name = req.query.name || "Guest";
+  res.json({ message: `Hello, ${name}!` });
+});
+```
+
+Why `|| "Guest"`: query values are strings or undefined. If missing, fall back. Template literal keeps spacing clean.
+
+Common mistake: `req.params.name` here. Params only work when the route has `:name` in its path. Query lives after `?`, params live inside the path.
+
+</details>
+
+## Blog posts CRUD, the core you will reuse everywhere
+
+This is the same shape as every CRUD API you will build: list, create, fix, remove. I use posts instead of abstract todos so the fields feel real.
+
+```js
+const express = require("express");
+const app = express();
+app.use(express.json());
+
