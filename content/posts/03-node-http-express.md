@@ -263,3 +263,39 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
+let posts = [
+  { id: 1, title: "Hello world", content: "First post", published: false },
+  { id: 2, title: "Async JS", content: "Promises explained", published: true },
+];
+let nextId = 3;
+
+// GET list plus stats, like an admin header needs
+app.get("/posts", (req, res) => {
+  res.json({
+    total: posts.length,
+    published: posts.filter((p) => p.published).length,
+    posts,
+  });
+});
+
+// POST create
+app.post("/posts", (req, res) => {
+  const { title, content } = req.body;
+  if (!title || !content) {
+    return res.status(411).json({ error: "title and content required" });
+  }
+  let post = { id: nextId++, title, content, published: false };
+  posts.push(post);
+  res.status(201).json(post);
+});
+
+// PUT publish all drafts, shows bulk update logic
+app.put("/posts/publish-all", (req, res) => {
+  let hasDraft = posts.some((p) => !p.published);
+  if (!hasDraft) {
+    return res.status(411).json({ message: "All posts already published" });
+  }
+  posts = posts.map((p) => ({ ...p, published: true }));
+  res.json({ message: "All posts published", posts });
+});
+
