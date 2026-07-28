@@ -335,3 +335,54 @@ app.delete("/posts/:id", (req, res) => {
 
 Why `Number()`: params are always strings. `p.id` is a number. `"2" === 2` is false, so convert first.
 
+Common mistake: `posts.splice(index)` without checking `findIndex` result. If index is `-1`, splice removes the last item. Filter by id is safer for beginners.
+
+</details>
+
+## Testing with Postman and curl, plus fetch from code
+
+Browsers do GET from the address bar. For POST, PUT, DELETE you need a client.
+
+Postman flow I use:
+
+1. New request, set method to POST
+2. URL `http://localhost:3000/posts`
+3. Body tab, raw, JSON, then `{ "title": "My draft", "content": "Hello" }`
+4. Send, check status 201 and the returned JSON
+
+Curl version of the same, good for sharing in docs:
+
+```bash
+curl -X POST http://localhost:3000/posts \
+  -H "Content-Type: application/json" \
+  -d '{"title":"My draft","content":"Hello"}'
+```
+
+Why `-H Content-Type` matters: without it Express sees plain text and `req.body` stays empty even with `express.json()`. That header tells the server how to parse.
+
+Third way is fetch from your own frontend code. This is the bridge to React later.
+
+```js
+// GET list
+async function getPosts() {
+  const res = await fetch("http://localhost:3000/posts");
+  const data = await res.json();
+  console.log(data);
+}
+
+// POST with token, this shape returns in auth post too
+async function createPost(title, content, token) {
+  const res = await fetch("http://localhost:3000/posts", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ title, content }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Create failed");
+  return data;
+}
+```
+
