@@ -299,3 +299,39 @@ app.put("/posts/publish-all", (req, res) => {
   res.json({ message: "All posts published", posts });
 });
 
+// DELETE remove all published, keeps drafts
+app.delete("/posts/published", (req, res) => {
+  let hasPublished = posts.some((p) => p.published);
+  if (!hasPublished) {
+    return res.status(411).json({ message: "No published posts to remove" });
+  }
+  posts = posts.filter((p) => !p.published);
+  res.json({ message: "Published posts removed", posts });
+});
+
+app.listen(3000, () => console.log("Blog API on 3000"));
+```
+
+Why in memory array for now? Because HTTP comes before DB in this series. The array lets you learn routes, codes, and testing without Mongo setup. In post 05 we swap the array for Mongoose and keep the same routes.
+
+Why `PUT /posts/publish-all` and not `PUT /posts`? Explicit paths read better in logs and avoid clashing with `PUT /posts/:id` later. When you add single post update, use `PUT /posts/:id` for one and keep this bulk path separate.
+
+> Try it yourself: add `DELETE /posts/:id` that removes one post by id and returns 404 when missing.
+
+<details>
+<summary>Solution</summary>
+
+```js
+app.delete("/posts/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const found = posts.find((p) => p.id === id);
+  if (!found) {
+    return res.status(404).json({ error: "Post not found" });
+  }
+  posts = posts.filter((p) => p.id !== id);
+  res.json({ message: "Deleted", posts });
+});
+```
+
+Why `Number()`: params are always strings. `p.id` is a number. `"2" === 2` is false, so convert first.
+
