@@ -386,3 +386,40 @@ async function createPost(title, content, token) {
 }
 ```
 
+Why `JSON.stringify`? Fetch body must be a string. Passing a raw object sends `[object Object]`. Stringify on send, `express.json()` parses on receive.
+
+For daily dev I add `nodemon` so the server restarts on save, and read port from env so hosting can override it:
+
+```bash
+npm install -D nodemon
+```
+
+```js
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`On ${PORT}`));
+```
+
+For React fetch from Vite `:5173` to Express `:3000`, browsers block without CORS. Add once in backend:
+
+```bash
+npm install cors
+```
+
+```js
+// Full file addition near top after express.json()
+const cors = require("cors");
+app.use(cors());
+```
+
+```json
+// package.json
+{
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js"
+  }
+}
+```
+
+## Patterns I follow on Express APIs
+
