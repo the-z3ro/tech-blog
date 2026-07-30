@@ -423,3 +423,42 @@ app.use(cors());
 
 ## Patterns I follow on Express APIs
 
+**Validate at the top, logic below.** Every POST and PUT starts with missing field checks and early returns. Handlers stay flat and the happy path is obvious.
+
+**Use correct codes from day one.** 201 for create, 404 for missing id, 401 for no token, 400 for bad shape. Frontend `res.ok` then works without string matching.
+
+**Keep route order in mind.** Express matches top to bottom. Put `/posts/publish-all` before `/posts/:id`, or `publish-all` gets treated as an id. I hit this once and spent too long wondering why id was a string word.
+
+**Separate storage from routes early.** Even with an array, put `posts` ops in small functions like `findPost(id)` and `addPost(data)`. When we move to Mongo in post 05, only those functions change, not every route.
+
+**Log method plus path while learning.** One line per request shows what Postman actually hit versus what you thought you hit.
+
+```js
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
+```
+
+## Projects
+
+All free, all local, each one maps to a real backend task.
+
+### 1. Greet plus calculator API
+
+Build `GET /greet`, `GET /sum`, and `POST /echo`. This cements query vs body vs params.
+
+Requirements:
+
+- `GET /greet?name=X` returns hello message, defaults to Guest
+- `GET /sum?a=5&b=3` returns result or 400 on bad numbers
+- `POST /echo` returns back whatever JSON it got plus a timestamp
+
+<details>
+<summary>Solution with explanation</summary>
+
+```js
+const express = require("express");
+const app = express();
+app.use(express.json());
+
