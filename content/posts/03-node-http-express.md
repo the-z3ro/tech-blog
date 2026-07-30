@@ -501,3 +501,44 @@ Requirements:
 - Add `DELETE /posts/:id` with 404
 - Test all five with Postman or curl
 
+<details>
+<summary>Solution with explanation</summary>
+
+```js
+const express = require("express");
+const app = express();
+app.use(express.json());
+
+let posts = [{ id: 1, title: "Hello", content: "World", published: false }];
+let nextId = 2;
+
+app.get("/posts", (req, res) => res.json({ posts }));
+
+app.get("/posts/:id", (req, res) => {
+  const post = posts.find((p) => p.id === Number(req.params.id));
+  if (!post) return res.status(404).json({ error: "Post not found" });
+  res.json(post);
+});
+
+app.post("/posts", (req, res) => {
+  const { title, content } = req.body;
+  if (!title || !content) {
+    return res.status(411).json({ error: "title and content required" });
+  }
+  const post = { id: nextId++, title, content, published: false };
+  posts.push(post);
+  res.status(201).json(post);
+});
+
+app.put("/posts/:id", (req, res) => {
+  const post = posts.find((p) => p.id === Number(req.params.id));
+  if (!post) return res.status(404).json({ error: "Post not found" });
+  const { title, content } = req.body;
+  if (!title || !content) {
+    return res.status(411).json({ error: "title and content required" });
+  }
+  post.title = title;
+  post.content = content;
+  res.json(post);
+});
+
