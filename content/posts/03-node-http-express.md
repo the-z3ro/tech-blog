@@ -462,3 +462,42 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
+app.get("/greet", (req, res) => {
+  const name = req.query.name || "Guest";
+  res.json({ message: `Hello, ${name}!` });
+});
+
+app.get("/sum", (req, res) => {
+  const a = Number(req.query.a);
+  const b = Number(req.query.b);
+  if (Number.isNaN(a) || Number.isNaN(b)) {
+    return res.status(400).json({ error: "a and b must be numbers" });
+  }
+  res.json({ result: a + b });
+});
+
+app.post("/echo", (req, res) => {
+  res.json({ youSent: req.body, at: new Date().toISOString() });
+});
+
+app.listen(3000);
+```
+
+Why: greet proves query handling, sum proves number conversion and 400s, echo proves body parsing. Timestamp shows server side data added to client data.
+
+Common mistake: forgetting `app.use(express.json())` so echo gets empty body. If `req.body` is undefined, that line is missing or the client forgot `Content-Type: application/json`.
+
+</details>
+
+### 2. Full blog posts API
+
+Extend the CRUD in this post to single resource ops. This is the API the React frontend will call later.
+
+Requirements:
+
+- Keep `GET /posts`, `POST /posts` from above
+- Add `GET /posts/:id` with 404
+- Add `PUT /posts/:id` to replace title and content, 404 when missing, 411 when fields missing
+- Add `DELETE /posts/:id` with 404
+- Test all five with Postman or curl
+
