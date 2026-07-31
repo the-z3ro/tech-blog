@@ -542,3 +542,41 @@ app.put("/posts/:id", (req, res) => {
   res.json(post);
 });
 
+app.delete("/posts/:id", (req, res) => {
+  const id = Number(req.params.id);
+  if (!posts.some((p) => p.id === id)) {
+    return res.status(404).json({ error: "Post not found" });
+  }
+  posts = posts.filter((p) => p.id !== id);
+  res.json({ message: "Deleted" });
+});
+
+app.listen(3000);
+```
+
+Why separate GET one plus PUT one: list views need all posts, edit pages need one post. PUT replaces fully, so both fields required. PATCH later will allow partial.
+
+Common mistake: defining `/posts/:id` before `/posts/publish-all` in the same file. Express would treat `publish-all` as an id. Keep static paths above param paths.
+
+</details>
+
+### 3. Blog views tracker
+
+Build a small stats API that uses query filters and reduce. This previews DB aggregation without a DB.
+
+Requirements:
+
+- In memory `views = [{ postId, day, count }]`
+- `POST /views` adds a record `{ postId, day, count }`
+- `GET /views?postId=1` returns records for that post plus total via reduce
+- `GET /top?limit=2` returns top posts by total views
+- Validate numbers, return 400 on bad input
+
+<details>
+<summary>Solution with explanation</summary>
+
+```js
+const express = require("express");
+const app = express();
+app.use(express.json());
+
