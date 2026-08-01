@@ -580,3 +580,60 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
+let views = [
+  { postId: 1, day: "2026-09-01", count: 120 },
+  { postId: 1, day: "2026-09-02", count: 80 },
+  { postId: 2, day: "2026-09-01", count: 310 },
+];
+
+app.post("/views", (req, res) => {
+  const postId = Number(req.body.postId);
+  const count = Number(req.body.count);
+  const day = req.body.day;
+  if (Number.isNaN(postId) || Number.isNaN(count) || !day) {
+    return res.status(400).json({ error: "postId, count, day required" });
+  }
+  const rec = { postId, day, count };
+  views.push(rec);
+  res.status(201).json(rec);
+});
+
+app.get("/views", (req, res) => {
+  const postId = Number(req.query.postId);
+  if (Number.isNaN(postId)) {
+    return res.status(400).json({ error: "postId query required" });
+  }
+  const list = views.filter((v) => v.postId === postId);
+  const total = list.reduce((s, v) => s + v.count, 0);
+  res.json({ postId, total, records: list });
+});
+
+app.get("/top", (req, res) => {
+  const limit = Number(req.query.limit) || 3;
+  let totals = {};
+  for (let v of views) {
+    totals[v.postId] = (totals[v.postId] || 0) + v.count;
+  }
+  let ranked = Object.entries(totals)
+    .map(([postId, total]) => ({ postId: Number(postId), total }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, limit);
+  res.json({ top: ranked });
+});
+
+app.listen(3000);
+```
+
+Why this shape: POST writes raw events, GET aggregates on read. That mirrors analytics tables later. Object map plus sort is the simplest top N without a DB.
+
+Common mistake: sorting strings instead of numbers. `sort()` without a compare fn sorts lexicographically, so 100 comes before 20. Always pass `(a, b) => b.total - a.total` for numeric rank.
+
+</details>
+
+Next is middleware, validation, and auth. We take this blog API and add logging, Zod checks, and JWT so only authors can publish their own drafts.
+
+## If lost / If bored
+
+- If lost: `req.body` undefined means missing `app.use(express.json())` or missing `Content-Type: application/json` on client. `publish-all` treated as id means route order, keep static paths above `:id`.
+- If bored: skip to Project 2 full blog CRUD, it is the API the frontend calls later.
+- Keep for next: `blog-platform` folder plus Postman collection. Post 04 adds middleware to these same routes.
