@@ -41,3 +41,42 @@ app.get("/posts", (req, res) => {
   // real logic here
 });
 
+app.post("/posts", (req, res) => {
+  // same auth check copied
+  // same validation copied
+  // real logic here
+});
+```
+
+A **middleware** is a function that runs between the request arriving and your handler running. It sees `req`, `res`, and `next`. Call `next()` to pass control onward. Send a response to stop there.
+
+Hospital version I finally remembered: patient enters, insurance check, blood test, BP check, then doctor. Request version: request arrives, logger, auth check, validation, then handler.
+
+```js
+function logger(req, res, next) {
+  console.log(`${req.method} ${req.path} at ${new Date().toISOString()}`);
+  next();
+}
+
+function requireAuthor(req, res, next) {
+  const author = req.headers["x-author"];
+  if (!author) {
+    return res.status(401).json({ error: "Missing x-author header" });
+  }
+  req.author = author;
+  next();
+}
+
+function validatePostId(req, res, next) {
+  const id = Number(req.query.postId);
+  if (Number.isNaN(id) || id < 1) {
+    return res.status(411).json({ error: "postId must be 1 or above" });
+  }
+  next();
+}
+
+// Per route, order matters left to right
+app.get("/posts", logger, requireAuthor, validatePostId, (req, res) => {
+  res.json({ message: `Hello ${req.author}, fetching posts` });
+});
+
