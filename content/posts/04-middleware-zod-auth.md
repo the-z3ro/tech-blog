@@ -80,3 +80,43 @@ app.get("/posts", logger, requireAuthor, validatePostId, (req, res) => {
   res.json({ message: `Hello ${req.author}, fetching posts` });
 });
 
+// For all routes
+app.use(logger);
+```
+
+Why attach to `req` like `req.author`? Downstream handlers need to know who passed auth without rechecking headers. That one line removes duplicate lookups later.
+
+Request lifecycle with logs, so you can see order:
+
+```
+GET /posts?postId=2
+  logger prints GET /posts
+  requireAuthor checks header, sets req.author
+  validatePostId checks query
+  handler runs and sends JSON
+```
+
+If any middleware sends a response and forgets `return`, code after it still runs and you get "headers already sent". I always `return res.json(...)` inside middleware to exit immediately.
+
+> Try it yourself: add a middleware that counts total requests and returns 429 when count passes 100 in one minute. Keep it in memory for now.
+
+<details>
+<summary>Solution</summary>
+
+```js
+let count = 0;
+let windowStart = Date.now();
+
+function rateGuard(req, res, next) {
+  const now = Date.now();
+  if (now - windowStart > 60 * 1000) {
+    count = 0;
+    windowStart = now;
+  }
+  count++;
+  if (count > 100) {
+    return res.status(429).json({ error: "Too many requests, slow down" });
+  }
+  next();
+}
+
