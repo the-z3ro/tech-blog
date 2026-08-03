@@ -120,3 +120,49 @@ function rateGuard(req, res, next) {
   next();
 }
 
+app.use(rateGuard);
+```
+
+Why reset by time window: a global counter that never resets blocks everyone forever after 100 hits. Real rate limiters use per IP plus sliding windows. This version teaches the shape.
+
+Common mistake: placing `app.use(rateGuard)` after routes. Middleware only runs for routes defined below it. Global guards go near the top, right after `express.json()`.
+
+</details>
+
+## Errors without crashing the server
+
+Sync throw inside a route crashes the process unless you catch it. Express has a special error handler with four params. Four, not three. That signature is how Express knows it is an error handler.
+
+```js
+// Must have 4 params to be treated as error middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Something went wrong" });
+});
+
+app.get("/risky", (req, res, next) => {
+  try {
+    let data = JSON.parse(req.query.data);
+    res.json({ data });
+  } catch (err) {
+    next(err);
+  }
+});
+```
+
+Why `next(err)` instead of `res.status(500)` inline? One central place formats all server errors, logs stacks, and hides internals from clients. Ten routes share it without copying.
+
+In async handlers, rejected promises do not reach that handler automatically in Express 4. Wrap or catch and forward:
+
+```js
+app.get("/posts/:id", async (req, res, next) => {
+  try {
+    let post = await fakeDbFind(req.params.id);
+    if (!post) return res.status(404).json({ error: "Not found" });
+    res.json(post);
+  } catch (e) {
+    next(e);
+  }
+});
+```
+
