@@ -248,3 +248,40 @@ console.log(r.success); // false
 console.log(r.error.errors.map((e) => e.path.join(".") + ": " + e.message));
 ```
 
+Why log paths: `errors` array tells you which field failed and why. Frontend can highlight each input instead of showing one generic message.
+
+Common mistake: sending numbers as strings from forms (`age: "25"`) and wondering why number check fails. Either coerce with `z.coerce.number()` or convert before validating. I prefer coerce at the API edge for form data.
+
+</details>
+
+## Auth, hashing, JWT, and where to keep tokens
+
+Anyone can hit your API with Postman. Auth makes sure only the right author touches their drafts.
+
+Three concepts people mix up:
+
+**Hashing** is one way. Same input gives same output. Tiny change gives totally different output. Cannot reverse. Use for passwords.
+
+```js
+const bcrypt = require("bcrypt");
+
+let hash = await bcrypt.hash("mypassword123", 10);
+console.log(hash); // $2b$10$... never store plain text
+
+let ok = await bcrypt.compare("mypassword123", hash);
+console.log(ok); // true
+```
+
+Why cost factor 10? Higher costs resist brute force but slow logins. 10 to 12 is the usual range. I use 10 for dev speed, 12 in prod.
+
+**Encryption** is two way. Encrypt with a key, decrypt with a key. Use when you need the original back, like stored API keys you must reuse. Not for passwords.
+
+**JWT** is neither. It is a signed token. Header plus payload plus signature, base64 encoded and joined by dots.
+
+```
+eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiIxMjMifQ.SIGNATURE
+header (base64)      payload (base64)   signature
+```
+
+Anyone can decode the payload. Only the server with the secret can verify the signature is real. That is the whole trick. Do not put secrets inside the payload.
+
