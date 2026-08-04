@@ -166,3 +166,45 @@ app.get("/posts/:id", async (req, res, next) => {
 });
 ```
 
+## Zod, validation that scales past three ifs
+
+Manual checks work for one field. They collapse at five.
+
+```js
+// Manual, does not scale
+if (!req.body.title || typeof req.body.title !== "string") {
+  return res.status(411).json({ error: "Invalid title" });
+}
+if (!req.body.content || req.body.content.length < 20) {
+  return res.status(411).json({ error: "Content too short" });
+}
+// What about 20 fields plus email format plus enums?
+```
+
+**Zod** lets you define a schema once and parse with it everywhere.
+
+```bash
+npm install zod
+```
+
+```js
+const { z } = require("zod");
+
+const createPostSchema = z.object({
+  title: z.string().min(5).max(120),
+  content: z.string().min(20),
+  tags: z.array(z.string()).optional(),
+  status: z.enum(["draft", "published"]).optional(),
+});
+
+app.post("/posts", (req, res) => {
+  const result = createPostSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(411).json({ errors: result.error.errors });
+  }
+  // result.data is typed and trimmed to schema
+  const { title, content, tags } = result.data;
+  res.status(201).json({ title, content, tags: tags || [] });
+});
+```
+
