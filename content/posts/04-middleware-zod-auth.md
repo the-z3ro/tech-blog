@@ -208,3 +208,43 @@ app.post("/posts", (req, res) => {
 });
 ```
 
+Why `safeParse` and not `parse`? `parse` throws on bad input. `safeParse` returns `{ success, data, error }` so you control the 411 response. In APIs I always use `safeParse`.
+
+Cheat sheet I keep open:
+
+```js
+z.string();
+z.string().email();
+z.string().url();
+z.string().min(5).max(100);
+z.number().min(0).max(150);
+z.boolean();
+z.array(z.string());
+z.enum(["draft", "published"]);
+z.string().optional();
+z.object({ title: z.string() });
+```
+
+My take after using both: manual ifs are fine for one internal script. Zod wins the moment two routes share a shape or the frontend needs the same rules. Joi does similar work, but Zod infers TypeScript types directly, so post 10 of the original series pairs with it cleanly. One schema gives runtime checks now and compile time types later.
+
+> Try it yourself: write a signup schema with username min 3 max 20, email format, age 1 to 120, password min 8. Test with a bad body and log `result.error.errors`.
+
+<details>
+<summary>Solution</summary>
+
+```js
+const { z } = require("zod");
+
+const signupSchema = z.object({
+  username: z.string().min(3).max(20),
+  email: z.string().email(),
+  age: z.number().min(1).max(120),
+  password: z.string().min(8),
+});
+
+let bad = { username: "ab", email: "not-an-email", age: 500, password: "123" };
+let r = signupSchema.safeParse(bad);
+console.log(r.success); // false
+console.log(r.error.errors.map((e) => e.path.join(".") + ": " + e.message));
+```
+
