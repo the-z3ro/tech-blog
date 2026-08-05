@@ -321,3 +321,40 @@ PORT=3000
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET || "dev-only-change-in-prod";
 
+function signAuthor(author) {
+  return jwt.sign(
+    { authorId: author.id, username: author.username },
+    JWT_SECRET,
+    { expiresIn: "7d" },
+  );
+}
+
+function authMiddleware(req, res, next) {
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith("Bearer ")) {
+    return res.status(403).json({ error: "No token sent" });
+  }
+  const token = header.split(" ")[1];
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.authorId = decoded.authorId;
+    next();
+  } catch (e) {
+    return res.status(403).json({ error: "Invalid or expired token" });
+  }
+}
+```
+
+Why `Bearer` prefix? Convention from OAuth. It lets one header carry different schemes later. Always split on space and take index 1. Forgetting the split and verifying `"Bearer xyz"` directly fails every time.
+
+Why `expiresIn`? Tokens leak through logs and screenshots. Short life limits damage. 7 days is comfortable for learning. Prod apps often use 15 min access plus refresh tokens.
+
+Full flow with hashed passwords, no plain text anywhere. Fragment to read here, Full runnable version with `app.listen` lives in Project 2 below, copy that to run:
+
+```js
+require("dotenv").config(); // add at top with npm install dotenv
+const express = require("express");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { z } = require("zod");
+
