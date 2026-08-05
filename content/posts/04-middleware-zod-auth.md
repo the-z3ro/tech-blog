@@ -285,3 +285,39 @@ header (base64)      payload (base64)   signature
 
 Anyone can decode the payload. Only the server with the secret can verify the signature is real. That is the whole trick. Do not put secrets inside the payload.
 
+**Where to store JWT on the browser:** `localStorage` is easy and survives reloads, but any JS on the page can read it, including injected scripts. `httpOnly` cookies cannot be read by JS and are safer against XSS, but need CSRF handling. My take: side project with no sensitive data, `localStorage` is fine to learn. Anything with payments or private drafts, use `httpOnly` cookies from day one.
+
+Auth flow for the blog:
+
+```
+Signup:
+  client sends { username, password }
+  server hashes password, saves author, returns token
+
+Login:
+  client sends { username, password }
+  server finds author, bcrypt.compare, returns token if match
+
+Protected:
+  client sends Authorization: Bearer <token>
+  server verifies signature, sets req.authorId, handler runs
+```
+
+Implementation with `jsonwebtoken`. Fragment to read, Full env setup below:
+
+```bash
+npm install jsonwebtoken bcrypt
+npm install dotenv
+```
+
+```bash
+# .env.example, copy to .env and fill real secret
+# Full file vs Fragment: copy this block as .env.example in project root
+JWT_SECRET=dev-only-change-in-prod
+PORT=3000
+```
+
+```js
+const jwt = require("jsonwebtoken");
+const JWT_SECRET = process.env.JWT_SECRET || "dev-only-change-in-prod";
+
