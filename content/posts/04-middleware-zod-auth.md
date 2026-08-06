@@ -358,3 +358,48 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { z } = require("zod");
 
+const app = express();
+app.use(express.json());
+
+const JWT_SECRET = process.env.JWT_SECRET || "dev-only-change-in-prod";
+let authors = [];
+let nextId = 1;
+
+const signupSchema = z.object({
+  username: z.string().min(3).max(20),
+  password: z.string().min(8),
+});
+
+app.post("/signup", async (req, res, next) => {
+  try {
+    const parsed = signupSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(411).json({ errors: parsed.error.errors });
+    }
+    const { username, password } = parsed.data;
+    if (authors.find((a) => a.username === username)) {
+      return res.status(409).json({ error: "Username taken" });
+    }
+    const hash = await bcrypt.hash(password, 10);
+    const author = { id: nextId++, username, password: hash };
+    authors.push(author);
+    const token = signAuthor(author);
+    res.status(201).json({ token });
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.post("/signin", async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+    const author = authors.find((a) => a.username === username);
+    if (!author) return res.status(403).json({ error: "Invalid login" });
+    const ok = await bcrypt.compare(password, author.password);
+    if (!ok) return res.status(403).json({ error: "Invalid login" });
+    res.json({ token: signAuthor(author) });
+  } catch (e) {
+    next(e);
+  }
+});
+
