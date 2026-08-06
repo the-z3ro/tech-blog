@@ -403,3 +403,48 @@ app.post("/signin", async (req, res, next) => {
   }
 });
 
+app.get("/me", authMiddleware, (req, res) => {
+  const author = authors.find((a) => a.id === req.authorId);
+  res.json({ id: author.id, username: author.username });
+});
+
+// Defined below but used above, function declarations hoist so this works.
+// Keep helper at bottom to keep routes readable up top.
+function signAuthor(author) {
+  return jwt.sign(
+    { authorId: author.id, username: author.username },
+    JWT_SECRET,
+    {
+      expiresIn: "7d",
+    },
+  );
+}
+```
+
+Why same "Invalid login" for missing user and wrong password? Specific messages tell attackers which usernames exist. Generic message leaks nothing.
+
+> Try it yourself: protect `POST /posts` with `authMiddleware` and set the post author from `req.authorId` instead of trusting the body.
+
+<details>
+<summary>Solution</summary>
+
+```js
+let posts = [];
+
+app.post("/posts", authMiddleware, (req, res) => {
+  const { title, content } = req.body;
+  if (!title || !content) {
+    return res.status(411).json({ error: "title and content required" });
+  }
+  const post = {
+    id: posts.length + 1,
+    title,
+    content,
+    authorId: req.authorId,
+    published: false,
+  };
+  posts.push(post);
+  res.status(201).json(post);
+});
+```
+
