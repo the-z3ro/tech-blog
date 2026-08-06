@@ -448,3 +448,39 @@ app.post("/posts", authMiddleware, (req, res) => {
 });
 ```
 
+Why from token not body: body can be forged to claim another author id. Token is verified, so `req.authorId` is trustworthy.
+
+Common mistake: forgetting the middleware arg in the route, so `req.authorId` stays undefined and every post saves with no owner. If owner is missing, check route signature first.
+
+</details>
+
+## Patterns I keep repeating
+
+**One evolving auth example beats two separate ones.** Early drafts had a header username check in one section and Bearer JWT in another with no link. Readers wondered which to use. Now the header toy becomes the Bearer real version in the same file. Toy first for shape, real second for prod.
+
+**Validate with Zod at the edge, trust inside.** Routes parse once, then pass `result.data` down. Helpers do not revalidate. That keeps validation in one layer instead of sprinkled everywhere.
+
+**Log without leaking.** Log method, path, and author id. Never log passwords, tokens, or full headers. I redact `authorization` in logger output by default now after pasting a token into a shared log once.
+
+**Separate 401 vs 403 early.** 401 means no or bad auth, go login. 403 means logged in but not allowed, do not retry login. Frontend can branch correctly only if backend respects the split.
+
+## Projects
+
+### 1. Request logger plus counter
+
+Build the observability trio: logger, counter, error handler. This is the base for every later backend post.
+
+Requirements:
+
+- `app.use` logger with method, path, timestamp
+- In memory counter per path, expose `GET /stats`
+- Central 4 param error handler returning 500 JSON
+- One route `/boom` that throws to prove the handler works
+
+<details>
+<summary>Solution with explanation</summary>
+
+```js
+const express = require("express");
+const app = express();
+
