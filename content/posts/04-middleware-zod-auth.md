@@ -484,3 +484,39 @@ Requirements:
 const express = require("express");
 const app = express();
 
+let counts = {};
+
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} at ${new Date().toISOString()}`);
+  counts[req.path] = (counts[req.path] || 0) + 1;
+  next();
+});
+
+app.get("/stats", (req, res) => res.json({ counts }));
+
+app.get("/boom", (req, res, next) => {
+  try {
+    throw new Error("kaboom");
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Something went wrong" });
+});
+
+app.listen(3000);
+```
+
+Why counts object and not single number: per path shows which endpoint gets hammered. Real monitoring groups by route the same way.
+
+Common mistake: defining `/stats` below the error handler. Error handlers do not pass onward, so routes after them never run. Keep error handler last.
+
+</details>
+
+### 2. Full author auth with Zod and bcrypt
+
+Build signup, signin, and me from this post without looking, then compare.
+
