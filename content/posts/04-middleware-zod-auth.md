@@ -520,3 +520,42 @@ Common mistake: defining `/stats` below the error handler. Error handlers do not
 
 Build signup, signin, and me from this post without looking, then compare.
 
+Requirements:
+
+- Zod schemas for both routes
+- Bcrypt hash on signup, compare on signin
+- JWT 1 day expiry, Bearer middleware
+- `GET /me` returns id and username only, never hash
+- Duplicate username gives 409
+
+<details>
+<summary>Solution with explanation</summary>
+
+See the full flow code above in the auth section. It meets all points: safeParse 411s, 409 on duplicate, generic 403 on bad login, token carries authorId, me strips password.
+
+Why retype instead of copy: auth has five moving parts that must line up. Typing forces you to connect schema to hash to sign to verify. Copying hides the one line you misunderstand.
+
+Common mistake: storing `password` from body directly when in a rush. Search your file for `password: req.body` before every commit. That string should never appear. Always `password: hash`.
+
+</details>
+
+### 3. Protected blog marketplace
+
+This preserves the old course marketplace challenge, mapped to blogs so the thread stays clean.
+
+Requirements:
+
+- Authors signup and signin with JWT
+- `POST /posts` needs auth, sets owner from token, validates with Zod
+- `POST /posts/:id/publish` only owner can publish, 403 otherwise
+- `GET /posts` public list, `GET /mine` needs auth and returns only my posts
+- All protected routes use the same `authMiddleware`
+
+<details>
+<summary>Solution with explanation</summary>
+
+```js
+const express = require("express");
+const app = express();
+app.use(express.json());
+
