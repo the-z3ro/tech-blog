@@ -34,3 +34,40 @@ This post fixes that with MongoDB for storage and Mongoose for structure. Same r
 
 Two problems force the move:
 
+```
+Problem 1: restart wipes arrays
+Problem 2: two servers do not share memory
+Fix: outside database both servers talk to
+```
+
+Architecture we use from here:
+
+```
+Browser -> Express (auth, validation, logic) -> MongoDB
+```
+
+Why not let browsers hit Mongo directly? Three reasons I learned the hard way:
+
+1. Browsers do not speak Mongo wire protocol
+2. Mongo has no per user row rules like "only edit your drafts"
+3. Exposing DB creds in frontend JS hands everyone your password
+
+Express stays in the middle to check JWT, validate with Zod, and enforce ownership. DB just stores.
+
+> Try it yourself: list what breaks if you keep the array version and run two servers on ports 3000 and 3001 behind a load balancer.
+
+<details>
+<summary>Solution</summary>
+
+Signup on 3000 creates an author in server A memory. Login on 3001 misses it and returns invalid login. Posts created on A never show on B. Restart of either wipes its half.
+
+Why: each Node process has its own heap. Arrays are not shared. Outside DB gives one shared truth both processes read.
+
+Common mistake: thinking `app.listen` twice in one file shares memory across machines. It shares inside one process only. Separate deploys still split.
+
+</details>
+
+## Clusters, databases, collections
+
+Mongo terms map to familiar ideas:
+
