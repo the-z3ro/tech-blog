@@ -559,3 +559,57 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
+// Assume authors array plus authMiddleware and signAuthor from above
+let posts = [];
+let nextPostId = 1;
+
+app.get("/posts", (req, res) => {
+  res.json({ posts: posts.filter((p) => p.published) });
+});
+
+app.get("/mine", authMiddleware, (req, res) => {
+  res.json({ posts: posts.filter((p) => p.authorId === req.authorId) });
+});
+
+app.post("/posts", authMiddleware, (req, res) => {
+  const { title, content } = req.body;
+  if (!title || !content) {
+    return res.status(411).json({ error: "title and content required" });
+  }
+  const post = {
+    id: nextPostId++,
+    title,
+    content,
+    authorId: req.authorId,
+    published: false,
+  };
+  posts.push(post);
+  res.status(201).json(post);
+});
+
+app.post("/posts/:id/publish", authMiddleware, (req, res) => {
+  const post = posts.find((p) => p.id === Number(req.params.id));
+  if (!post) return res.status(404).json({ error: "Not found" });
+  if (post.authorId !== req.authorId) {
+    return res.status(403).json({ error: "Not your post" });
+  }
+  post.published = true;
+  res.json(post);
+});
+
+app.listen(3000);
+```
+
+Why owner check before publish: auth proves who you are, ownership proves you may act. Skipping the second check lets any logged in user publish anyone's drafts.
+
+Common mistake: trusting `authorId` from body on create. Always overwrite with token value server side, as done here.
+
+</details>
+
+Next is persistence. The in memory arrays reset on every restart. We swap them for MongoDB with Mongoose, keep the same routes and auth, and add real queries like populate and filters.
+
+## If lost / If bored
+
+- If lost: `headers already sent` means middleware sent a response without `return`. `Invalid token` with Bearer in string means forgot `split(" ")[1]`.
+- If bored: skip to Project 3 protected marketplace, it ties middleware plus Zod plus JWT together.
+- Keep for next: `authMiddleware` plus Zod schemas plus `.env` with `JWT_SECRET`. Post 05 keeps the same auth, swaps arrays for Mongo.
