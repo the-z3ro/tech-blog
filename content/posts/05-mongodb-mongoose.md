@@ -108,3 +108,54 @@ async function connectDB() {
 }
 ```
 
+Why env var and not hardcoded string? Connection strings hold passwords. Hardcoding leaks them to Git. I keep `.env` local and `.env.example` committed with fake values. If `MONGO_URI` is missing, fail fast with a clear message instead of a timeout later.
+
+Atlas quick path: create free cluster, add IP `0.0.0.0/0` for learning (lock down later), create user and password, copy the `mongodb+srv://` string into `.env` as `MONGO_URI`.
+
+## Schemas and models for authors, posts, comments
+
+This is the single canonical schema for the series. Old drafts had users plus admins plus courses plus purchases in two posts with drift. This version keeps the same relations but in blog words so the thread stays clean.
+
+```js
+const mongoose = require("mongoose");
+
+const AuthorSchema = new mongoose.Schema(
+  {
+    username: { type: String, required: true, unique: true, minlength: 3 },
+    email: { type: String, required: true },
+    password: { type: String, required: true },
+  },
+  { timestamps: true },
+);
+
+const PostSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true },
+    content: { type: String, required: true },
+    published: { type: Boolean, default: false },
+    authorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Author",
+      required: true,
+    },
+  },
+  { timestamps: true },
+);
+
+const CommentSchema = new mongoose.Schema(
+  {
+    postId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Post",
+      required: true,
+    },
+    authorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Author",
+      required: true,
+    },
+    text: { type: String, required: true, minlength: 1 },
+  },
+  { timestamps: true },
+);
+
