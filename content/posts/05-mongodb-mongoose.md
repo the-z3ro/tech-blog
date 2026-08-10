@@ -71,3 +71,40 @@ Common mistake: thinking `app.listen` twice in one file shares memory across mac
 
 Mongo terms map to familiar ideas:
 
+```
+Cluster (group of servers Atlas runs for you)
+  Database (like blogdb)
+    Collection users (like a table)
+      Document { username: eshan } (like a row, JSON style)
+    Collection posts
+    Collection comments
+```
+
+Mongo itself is schemaless. You can insert any shape into a collection. That freedom bites later when one post has `title` and another has `Title`. **Mongoose** adds schemas on top for validation and autocomplete. I use it for every Node plus Mongo project now.
+
+Setup:
+
+```bash
+npm install mongoose
+npm install dotenv
+```
+
+```bash
+# .env.example for this post, copy to .env
+# Full file vs Fragment: keep this file at project root, never commit real .env
+MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/blogdb
+JWT_SECRET=dev-only-change-in-prod
+PORT=3000
+```
+
+```js
+const mongoose = require("mongoose");
+
+async function connectDB() {
+  const uri = process.env.MONGO_URI;
+  if (!uri) throw new Error("Set MONGO_URI in .env first");
+  await mongoose.connect(uri);
+  console.log("Mongo connected");
+}
+```
+
