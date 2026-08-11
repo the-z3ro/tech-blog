@@ -159,3 +159,40 @@ const CommentSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Helper method on schema, keeps password logic with the model
+AuthorSchema.methods.isValidPassword = async function (plain) {
+  const bcrypt = require("bcrypt");
+  return bcrypt.compare(plain, this.password);
+};
+
+const Author = mongoose.model("Author", AuthorSchema);
+const Post = mongoose.model("Post", PostSchema);
+const Comment = mongoose.model("Comment", CommentSchema);
+```
+
+Why `ref` fields? They store ObjectIds that point to other collections. Later `populate` swaps the id for the real doc, like a join without SQL.
+
+Why `timestamps: true`? Adds `createdAt` and `updatedAt` free. Sorting posts by newest and showing "edited 2h ago" needs these. I add it to every schema by default now.
+
+Why `unique: true` on username? It creates an index that rejects duplicates at the DB level. App checks can race when two signups arrive together. The index is the real guard. Handle code `11000` for duplicate key.
+
+> Try it yourself: add a `tags: [String]` field to Post with default empty array, and a `views` number with default 0. What do new posts get when you omit both?
+
+<details>
+<summary>Solution</summary>
+
+```js
+tags: { type: [String], default: [] },
+views: { type: Number, default: 0 },
+```
+
+New posts get `tags: []` and `views: 0` without sending them. Why defaults matter: frontend code can always map over tags and add to views without null checks.
+
+Common mistake: `type: Array` without element type. That allows mixed junk like numbers inside tags. `[String]` enforces every item is a string.
+
+</details>
+
+## CRUD, the four ops you will use daily
+
+Create, read, update, delete. Same words as the array version, now against Mongo.
+
