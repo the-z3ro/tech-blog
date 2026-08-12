@@ -235,3 +235,40 @@ await Post.deleteOne({ _id: post._id });
 await Comment.findByIdAndDelete(someCommentId);
 ```
 
+Why `$set`? Without it, `updateOne({_id}, { title: "x" })` replaces the whole doc with only title in some drivers. With `$set`, only listed fields change. I treat missing `$set` as a bug in review.
+
+Why `{ new: true }`? `findByIdAndUpdate` returns the old doc by default. New true returns the updated one, which is what you want to send back to the client right after edit.
+
+Why `populate` second arg `"username email"`? It limits fields. Without it you might send password hashes to the frontend. I never populate without a field list on author refs.
+
+> Try it yourself: find all published posts by one author, sorted newest first, limit 5.
+
+<details>
+<summary>Solution</summary>
+
+```js
+const list = await Post.find({ authorId: someId, published: true })
+  .sort({ createdAt: -1 })
+  .limit(5);
+```
+
+Why chain works: Mongoose queries build up until awaited. Sort minus one means descending. Limit keeps payload small for feeds.
+
+Common mistake: `Post.find({ authorId: "string-id" })` with wrong type sometimes misses when strict casting is off. Store ObjectIds from created docs or convert with `new mongoose.Types.ObjectId(id)`.
+
+</details>
+
+## Full auth plus DB, the version to copy
+
+This merges the JWT flow from post 04 with real storage. Same routes, no more arrays.
+
+```js
+require("dotenv").config(); // needs npm install dotenv
+const express = require("express");
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+// Models from schema section above, same file for learning, split to models/ in real apps
+const Author = mongoose.model("Author");
+const Post = mongoose.model("Post");
+
