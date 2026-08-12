@@ -196,3 +196,42 @@ Common mistake: `type: Array` without element type. That allows mixed junk like 
 
 Create, read, update, delete. Same words as the array version, now against Mongo.
 
+```js
+// CREATE
+const author = await Author.create({
+  username: "eshan",
+  email: "eshan@example.com",
+  password: hashedPassword,
+});
+
+const post = await Post.create({
+  title: "Hello",
+  content: "World with enough length",
+  authorId: author._id,
+});
+
+// READ
+const allPosts = await Post.find({});
+const one = await Post.findOne({ title: "Hello" });
+const byId = await Post.findById(post._id);
+const popular = await Post.find({ views: { $gt: 100 } });
+
+// READ with join, author details inline
+const withAuthor = await Post.findById(post._id).populate(
+  "authorId",
+  "username email",
+);
+
+// UPDATE, always $set for partial
+await Post.updateOne({ _id: post._id }, { $set: { title: "Hello edited" } });
+const updated = await Post.findByIdAndUpdate(
+  post._id,
+  { $set: { published: true } },
+  { new: true },
+);
+
+// DELETE
+await Post.deleteOne({ _id: post._id });
+await Comment.findByIdAndDelete(someCommentId);
+```
+
