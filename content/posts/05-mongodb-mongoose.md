@@ -272,3 +272,41 @@ const jwt = require("jsonwebtoken");
 const Author = mongoose.model("Author");
 const Post = mongoose.model("Post");
 
+const app = express();
+app.use(express.json());
+
+const JWT_SECRET = process.env.JWT_SECRET || "dev-only-change-in-prod";
+
+mongoose.connect(process.env.MONGO_URI).then(() => console.log("DB up"));
+
+function authMiddleware(req, res, next) {
+  const h = req.headers.authorization;
+  if (!h || !h.startsWith("Bearer ")) {
+    return res.status(403).json({ error: "No token" });
+  }
+  try {
+    const d = jwt.verify(h.split(" ")[1], JWT_SECRET);
+    req.authorId = d.authorId;
+    next();
+  } catch {
+    return res.status(403).json({ error: "Bad token" });
+  }
+}
+
+app.post("/signup", async (req, res) => {
+  const { username, email, password } = req.body;
+  try {
+    const hash = await bcrypt.hash(password, 10);
+    const author = await Author.create({ username, email, password: hash });
+    const token = jwt.sign({ authorId: author._id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+    res.status(201).json({ token });
+  } catch (e) {
+    if (e.code === 11000) {
+      return res.status(409).json({ error: "Username taken" });
+    }
+    res.status(500).json({ error: "Signup failed" });
+  }
+});
+
