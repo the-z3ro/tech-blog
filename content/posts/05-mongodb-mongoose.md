@@ -310,3 +310,40 @@ app.post("/signup", async (req, res) => {
   }
 });
 
+app.post("/posts", authMiddleware, async (req, res) => {
+  const { title, content } = req.body;
+  if (!title || !content) {
+    return res.status(411).json({ error: "title and content required" });
+  }
+  const post = await Post.create({
+    title,
+    content,
+    authorId: req.authorId,
+  });
+  res.status(201).json(post);
+});
+
+app.get("/mine", authMiddleware, async (req, res) => {
+  const posts = await Post.find({ authorId: req.authorId }).sort({
+    createdAt: -1,
+  });
+  res.json({ posts });
+});
+
+// Full file needs a listener, add at bottom to run
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Blog DB API on ${PORT}`));
+```
+
+Why catch `11000` specifically? That is Mongo duplicate key. Mapping it to 409 tells the frontend "pick another name" instead of generic 500. I check `e.code` right after create for every unique field.
+
+Why sign with `_id` and not username? Ids never change. Usernames can. Token stays valid after a rename when it holds the id.
+
+## Patterns from real Mongo work
+
+**One schema file per model, one db file for connect.** `models/Author.js`, `models/Post.js`, `db.js`. Routes import models, never define schemas inline. When Post gains `views`, you edit one file.
+
+**Validate twice, for different reasons.** Zod checks shape at the API edge for nice 411s. Mongoose schema enforces at storage for safety when other scripts write directly. Skipping either leaves a hole.
+
+**Index what you query by.** `authorId`, `published`, `createdAt` need indexes once posts grow. Without them, list pages scan everything and slow down. Add `PostSchema.index({ authorId: 1, createdAt: -1 })` early.
+
