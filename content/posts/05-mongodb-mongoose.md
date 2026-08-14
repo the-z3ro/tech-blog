@@ -347,3 +347,41 @@ Why sign with `_id` and not username? Ids never change. Usernames can. Token sta
 
 **Index what you query by.** `authorId`, `published`, `createdAt` need indexes once posts grow. Without them, list pages scan everything and slow down. Add `PostSchema.index({ authorId: 1, createdAt: -1 })` early.
 
+**Never return password hashes.** Select excludes or populate field lists everywhere. I search for `.populate("authorId")` without fields in review and flag it. One leak exposes every hash to brute force.
+
+**Use lean for read heavy lists.** `Post.find({}).lean()` returns plain objects, faster and lighter than full docs when you do not need save or virtuals. Feeds and search use lean. Edits load full docs.
+
+## Projects
+
+### 1. Blog catalog with ownership
+
+This keeps the old course catalog challenge, mapped to blogs.
+
+Requirements:
+
+- `POST /posts` needs auth, Zod min lengths, owner from token
+- `GET /posts` public, only published, with author username via populate
+- `POST /posts/:id/comments` needs auth, creates comment linked to post
+- `GET /posts/:id/comments` public list with comment author names
+
+<details>
+<summary>Solution with explanation</summary>
+
+```js
+app.post("/posts", authMiddleware, async (req, res) => {
+  const { title, content } = req.body;
+  if (!title || title.length < 5 || !content || content.length < 20) {
+    return res.status(411).json({ error: "Title 5+, content 20+ chars" });
+  }
+  const post = await Post.create({ title, content, authorId: req.authorId });
+  res.status(201).json(post);
+});
+
+app.get("/posts", async (req, res) => {
+  const posts = await Post.find({ published: true })
+    .populate("authorId", "username")
+    .sort({ createdAt: -1 })
+    .lean();
+  res.json({ posts });
+});
+
