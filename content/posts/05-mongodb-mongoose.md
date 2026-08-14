@@ -385,3 +385,40 @@ app.get("/posts", async (req, res) => {
   res.json({ posts });
 });
 
+app.post("/posts/:id/comments", authMiddleware, async (req, res) => {
+  const post = await Post.findById(req.params.id);
+  if (!post) return res.status(404).json({ error: "Post not found" });
+  const comment = await Comment.create({
+    postId: post._id,
+    authorId: req.authorId,
+    text: req.body.text,
+  });
+  res.status(201).json(comment);
+});
+
+app.get("/posts/:id/comments", async (req, res) => {
+  const comments = await Comment.find({ postId: req.params.id })
+    .populate("authorId", "username")
+    .sort({ createdAt: 1 });
+  res.json({ comments });
+});
+```
+
+Why populate author on reads: frontend shows "by eshan" without a second fetch. Why lean on list: feeds read a lot, no edits inline, so plain objects are faster.
+
+Common mistake: allowing comments on missing posts. Always load the post first and 404 early, or orphan comments pile up.
+
+</details>
+
+### 2. Views and top posts with aggregation
+
+Track views per day and rank posts. Previews analytics without new infra.
+
+Requirements:
+
+- `View` model with `postId` ref, `day` string, `count` number
+- `POST /views` records a view batch
+- `GET /top?limit=3` totals by postId and returns titles plus totals
+- Use aggregate group and sort, not in memory loops
+- Starter seed to create two posts first, then add views with `POST /views` using their `_id` values from the create responses
+
