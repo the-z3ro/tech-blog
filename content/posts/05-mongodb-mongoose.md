@@ -422,3 +422,40 @@ Requirements:
 - Use aggregate group and sort, not in memory loops
 - Starter seed to create two posts first, then add views with `POST /views` using their `_id` values from the create responses
 
+<details>
+<summary>Solution with explanation</summary>
+
+```js
+const ViewSchema = new mongoose.Schema({
+  postId: { type: mongoose.Schema.Types.ObjectId, ref: "Post", required: true },
+  day: { type: String, required: true },
+  count: { type: Number, required: true, min: 0 },
+});
+const View = mongoose.model("View", ViewSchema);
+
+app.post("/views", async (req, res) => {
+  const doc = await View.create(req.body);
+  res.status(201).json(doc);
+});
+
+app.get("/top", async (req, res) => {
+  const limit = Number(req.query.limit) || 3;
+  const rows = await View.aggregate([
+    { $group: { _id: "$postId", total: { $sum: "$count" } } },
+    { $sort: { total: -1 } },
+    { $limit: limit },
+  ]);
+  res.json({ top: rows });
+});
+```
+
+Why aggregate in DB: totals compute where data lives. Pulling all view docs to Node to reduce wastes bandwidth once days pile up.
+
+Common mistake: storing day as Date with time zones mixed. For daily counts I store `YYYY-MM-DD` strings so grouping is stable across zones.
+
+</details>
+
+### 3. Full stack mini with raw DOM, no React yet
+
+This keeps the old full stack challenge, now against the Mongo backend.
+
