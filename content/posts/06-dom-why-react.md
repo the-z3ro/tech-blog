@@ -40,3 +40,46 @@ npm install
 npm run dev
 ```
 
+What you get:
+
+```
+blog-frontend/
+  src/
+    App.jsx      main component you edit
+    main.jsx     entry, renders App into index.html
+    components/  your own pieces go here
+  index.html
+  package.json
+```
+
+`npm run dev` starts a fast dev server with hot reload. Edit `App.jsx`, save, browser updates without manual refresh. `npm run build` makes the production bundle later.
+
+Why Vite and not plain script tags? Script tags work for one file demos. Real apps need imports, JSX compile, and fast refresh. Vite gives that with zero config. Older tutorials show `create-react-app`. That tool is slow and now deprecated for new work. Use Vite.
+
+If `npm run dev` prints a localhost URL, open it. You should see the Vite plus React starter. Keep it running while you read the DOM parts below. We return to it at the end.
+
+> Try it yourself: change the `h1` text in `App.jsx`, save, and watch the browser update without refresh. Then stop the server with Ctrl+C and restart with `npm run dev`.
+
+<details>
+<summary>Solution</summary>
+
+Open `src/App.jsx`, find the heading, change text to `My blog frontend`, save. Browser shows the new text in under a second.
+
+Why it works: Vite watches files and pushes updates over websocket. No rebuild step from you.
+
+Common mistake: editing files in `dist` after a build instead of `src`. `dist` is output. Always edit `src`, rebuild to refresh `dist`.
+
+</details>
+
+## Browser JS vs Node, same language different tools
+
+JS runs in both, but the extra APIs differ. This is why `document` code crashes in Node and `fs` code crashes in the browser.
+
+```
+Browser JS:
+  ECMAScript core
+  + document, window
+  + fetch
+  + localStorage
+  + setTimeout
+
