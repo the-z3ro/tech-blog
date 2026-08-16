@@ -459,3 +459,71 @@ Common mistake: storing day as Date with time zones mixed. For daily counts I st
 
 This keeps the old full stack challenge, now against the Mongo backend.
 
+Requirements:
+
+- Static `index.html` with title input, content input, button, list div
+- JS fetch GET posts on load, POST on button, render with `createElement`, no innerHTML templating for user text
+- Signup and signin forms storing token in memory, sending Bearer on POST
+- Show my posts only after login via `/mine`
+
+<details>
+<summary>Solution with explanation</summary>
+
+```html
+<input id="title" placeholder="Title" />
+<input id="content" placeholder="Content" />
+<button onclick="createPost()">Publish draft</button>
+<div id="list"></div>
+
+<script>
+  let token = "";
+  const API = "http://localhost:3000";
+
+  async function loadPosts() {
+    const res = await fetch(`${API}/posts`);
+    const data = await res.json();
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+    for (let p of data.posts || []) {
+      const div = document.createElement("div");
+      const h = document.createElement("h3");
+      h.textContent = p.title;
+      const para = document.createElement("p");
+      para.textContent = p.content.slice(0, 120);
+      div.appendChild(h);
+      div.appendChild(para);
+      list.appendChild(div);
+    }
+  }
+
+  async function createPost() {
+    const title = document.getElementById("title").value;
+    const content = document.getElementById("content").value;
+    await fetch(`${API}/posts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ title, content }),
+    });
+    loadPosts();
+  }
+
+  loadPosts();
+</script>
+```
+
+Why `textContent` not `innerHTML` for title and content: user text can hold script tags. `textContent` treats it as text, blocking XSS. `innerHTML = ""` for clearing the container is fine because no user data is inside that string.
+
+Common mistake: forgetting Bearer on POST after login works in Postman. Postman stores headers per request. Browser fetch needs the header object every call. Keep token in a variable and always attach.
+
+</details>
+
+Next is the frontend bridge. We leave the server running and switch to the browser: DOM trees, raw manipulation pain, and why React exists. The same posts API becomes the data behind the UI.
+
+## If lost / If bored
+
+- If lost: connect timeout means `MONGO_URI` missing or IP not allowed, check `.env` plus Atlas access. `11000` means duplicate username, map to 409 as shown.
+- If bored: skip to Project 1 catalog with populate, it is the query pattern feeds use daily.
+- Keep for next: running API on `3000` plus Mongo connected. Post 06 fetches these same posts from the browser.
