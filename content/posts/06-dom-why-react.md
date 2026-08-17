@@ -83,3 +83,44 @@ Browser JS:
   + localStorage
   + setTimeout
 
+Node.js:
+  ECMAScript core
+  + fs, http, path
+  + process
+```
+
+Quick check in browser console (right click, Inspect, Console):
+
+```js
+console.log(typeof document); // object in browser
+console.log(typeof window); // object in browser
+```
+
+Same lines in Node print `undefined`. Not a bug. Different runtime, different globals.
+
+Why does this matter for the blog? Your Express code uses `fs` and `process.env`. Your frontend code uses `document` and `window`. Sharing helper files between them works only for pure logic like `slugify` or `readingTime`. Anything touching runtime APIs must stay on its side.
+
+## DOM tree, selectors, and raw updates
+
+**DOM** is the browser in memory view of the page as a tree of objects. HTML is static text. DOM is live and editable by JS.
+
+```
+HTML file:              DOM tree:
+<html>                  document
+  <body>                  html
+    <div id=app>            body
+      <h1>Hello</h1>          div#app
+      <button>Click</button>    h1
+                                button
+```
+
+Change the tree and the page changes instantly. That is dynamic UI at its simplest.
+
+Selectors you will use constantly:
+
+```html
+<input id="readMins" type="number" placeholder="Minutes you read" />
+<button onclick="showTime()">Save</button>
+<div id="result"></div>
+```
+
