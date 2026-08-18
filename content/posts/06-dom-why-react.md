@@ -161,3 +161,39 @@ div.remove();
 
 Why `textContent` for user titles and `innerHTML` only for your own markup? `textContent` treats input as plain text. `innerHTML` parses it as HTML, so a title with `<script>` would run. For blog titles from users, always `textContent`. I use `innerHTML` only to clear a container I control, never to inject user strings.
 
+> Try it yourself: make a page with an input and button that adds the input text as a new div inside `#list`. Use `textContent`, not `innerHTML`, for the input value.
+
+<details>
+<summary>Solution</summary>
+
+```html
+<input id="draftTitle" placeholder="Draft title" />
+<button onclick="addDraft()">Add</button>
+<div id="list"></div>
+
+<script>
+  function addDraft() {
+    const val = document.getElementById("draftTitle").value;
+    if (!val.trim()) return;
+    const div = document.createElement("div");
+    div.className = "post-card";
+    div.textContent = val;
+    document.getElementById("list").appendChild(div);
+    document.getElementById("draftTitle").value = "";
+  }
+</script>
+```
+
+Why trim check: stops empty cards from blank spaces. Clearing input after add keeps flow fast for many drafts.
+
+Common mistake: `list.innerHTML += "<div>" + val + "</div>"`. Works until someone types HTML. Then layout breaks or worse. `createElement` plus `textContent` avoids that class of bug.
+
+</details>
+
+## Where raw DOM falls apart
+
+One add function feels fine. A real drafts page needs add, edit, delete, filter, and server sync. That is where manual DOM breaks.
+
+```js
+let drafts = [];
+
