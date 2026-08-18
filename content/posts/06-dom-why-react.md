@@ -124,3 +124,40 @@ Selectors you will use constantly:
 <div id="result"></div>
 ```
 
+```js
+function showTime() {
+  const mins = document.getElementById("readMins").value;
+  document.getElementById("result").textContent = `Saved ${mins} min read`;
+}
+
+// Other ways to grab elements
+document.getElementsByClassName("post-card"); // live collection
+document.querySelector("#readMins"); // first match, CSS style
+document.querySelectorAll(".post-card"); // all matches
+```
+
+Rule I follow: classes for styling, ids for JS hooks. `.post-card` styles every card the same. `#publish-btn` targets one button to attach logic. Mixing them makes refactors painful when designers rename classes.
+
+Create and edit nodes directly:
+
+```js
+// Create
+const div = document.createElement("div");
+div.textContent = "New draft saved";
+div.className = "post-card";
+div.setAttribute("data-id", "123");
+
+// Add to page
+document.getElementById("list").appendChild(div);
+
+// Update
+div.style.color = "green";
+div.classList.add("fresh");
+div.classList.remove("stale");
+
+// Remove
+div.remove();
+```
+
+Why `textContent` for user titles and `innerHTML` only for your own markup? `textContent` treats input as plain text. `innerHTML` parses it as HTML, so a title with `<script>` would run. For blog titles from users, always `textContent`. I use `innerHTML` only to clear a container I control, never to inject user strings.
+
