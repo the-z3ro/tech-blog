@@ -197,3 +197,39 @@ One add function feels fine. A real drafts page needs add, edit, delete, filter,
 ```js
 let drafts = [];
 
+function addDraft(text) {
+  const li = document.createElement("li");
+  li.textContent = text;
+  li.setAttribute("id", `draft-${drafts.length}`);
+  document.getElementById("list").appendChild(li);
+  drafts.push({ text, published: false });
+}
+
+// Now server returns updated drafts with one item edited.
+// Which li do you update? Which do you remove?
+// Array and DOM are out of sync and you have no map between them.
+```
+
+Core problem in one picture:
+
+```
+Data array        DOM nodes
+  updated           stale
+    |                 |
+    Need manual code to reconcile every change
+```
+
+The naive fix is clear everything and rerender all:
+
+```js
+function renderDrafts(drafts) {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  for (let d of drafts) {
+    const li = document.createElement("li");
+    li.textContent = d.title;
+    list.appendChild(li);
+  }
+}
+```
+
