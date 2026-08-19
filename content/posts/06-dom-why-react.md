@@ -269,3 +269,40 @@ Today: React dominates jobs, Vue and Svelte are solid alternatives
 
 What React actually solves for our blog:
 
+```
+No central state  -> useState holds drafts as source of truth
+Manual DOM sync   -> reconciler diffs and patches minimal nodes
+Repeated UI       -> components reuse PostCard everywhere
+Hard to read      -> JSX reads like HTML with JS power
+```
+
+Three jobs split cleanly:
+
+1. You update state, like `setDrafts(newList)`
+2. React diffs old vs new virtual tree
+3. React patches only changed real nodes
+
+React is just JS plus JSX. JSX looks like HTML but compiles to function calls:
+
+```jsx
+function PostCard() {
+  return (
+    <div className="post-card">
+      <h1>Hello blog</h1>
+      <p>World</p>
+    </div>
+  );
+}
+// Compiles roughly to React.createElement calls, then to DOM patches
+```
+
+Why `className` not `class`? `class` is reserved in JS. JSX borrows JS rules, so the attribute got renamed. Same for `onClick` camelCase instead of lowercase `onclick`.
+
+## Patterns before React
+
+**Keep one source of truth even in vanilla.** If drafts array is truth, never read titles back from DOM to save. Read inputs once on submit, update array, rerender from array. Two truths always drift.
+
+**Never trust DOM for ids on save.** Use data ids from your array or server `_id`. Relying on list index breaks the moment you sort or filter. Index 2 today is a different post after a delete.
+
+**Escape by default.** Blog titles, comments, bios. All user text goes through `textContent` or a sanitizer. I treat `innerHTML` with user data as a bug in review, even if it works in the demo.
+
