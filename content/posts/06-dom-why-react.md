@@ -233,3 +233,39 @@ function renderDrafts(drafts) {
 }
 ```
 
+Why this hurts: even one title change destroys and recreates every node. Focus lost, scroll jumps, images refetch, animations restart. On 500 posts it visibly lags.
+
+Ideal fix looks like this:
+
+```
+State changes -> diff old vs new -> update only changed nodes
+```
+
+You manage state. Something else figures out the minimal DOM edits. That something is React.
+
+> Try it yourself: with 3 drafts rendered, edit the second title in the array only. Notice the page still shows old text until you manually find and update that li.
+
+<details>
+<summary>Solution</summary>
+
+No code fix here is the point. You would need to store id to node maps, handle deletes, handle reorders, and keep them all correct on every fetch. That bookkeeping grows with every feature.
+
+Why this exercise matters: every line of that bookkeeping is what React reconciler does for you. Feeling the pain once makes the abstraction stick.
+
+Common mistake: adding `id` attributes and thinking sync is solved. Ids help find nodes but you still write update, insert, remove, and move logic by hand for every data shape.
+
+</details>
+
+## Why frameworks showed up
+
+Short history so the React choice makes sense:
+
+```
+1995 to 2000: vanilla direct DOM, fine for small pages
+2006 to 2010: jQuery simplified selectors and cross browser quirks
+2013 onward: React, Angular, Vue for state plus UI at scale
+Today: React dominates jobs, Vue and Svelte are solid alternatives
+```
+
+What React actually solves for our blog:
+
