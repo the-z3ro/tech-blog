@@ -306,3 +306,43 @@ Why `className` not `class`? `class` is reserved in JS. JSX borrows JS rules, so
 
 **Escape by default.** Blog titles, comments, bios. All user text goes through `textContent` or a sanitizer. I treat `innerHTML` with user data as a bug in review, even if it works in the demo.
 
+## Projects
+
+### 1. Read time saver with raw DOM
+
+Build the input plus button plus result trio without any framework. This locks in selectors and events.
+
+Requirements:
+
+- Two inputs for words read and minutes spent, one button, one result div
+- On click, show words per minute plus a slow or fast label
+- Validate numbers, show error text on bad input, no alerts
+- Clear result styling via classList, not inline styles everywhere
+
+<details>
+<summary>Solution with explanation</summary>
+
+```html
+<input id="words" type="number" placeholder="Words" />
+<input id="mins" type="number" placeholder="Minutes" />
+<button onclick="calc()">Calc</button>
+<div id="out"></div>
+
+<script>
+  function calc() {
+    const w = Number(document.getElementById("words").value);
+    const m = Number(document.getElementById("mins").value);
+    const out = document.getElementById("out");
+    out.classList.remove("error", "ok");
+    if (Number.isNaN(w) || Number.isNaN(m) || m <= 0) {
+      out.textContent = "Enter valid numbers, mins over 0";
+      out.classList.add("error");
+      return;
+    }
+    const wpm = Math.round(w / m);
+    out.textContent = `${wpm} wpm ${wpm < 150 ? "(slow read)" : "(fast read)"}`;
+    out.classList.add("ok");
+  }
+</script>
+```
+
