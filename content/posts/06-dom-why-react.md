@@ -346,3 +346,51 @@ Requirements:
 </script>
 ```
 
+Why class swap: keeps style in CSS where designers expect it. Inline styles scatter and are hard to override later.
+
+Common mistake: reading `.value` as numbers directly. Inputs always give strings. Convert with `Number` and check `Number.isNaN` before math, or `"100" + 20` style bugs return.
+
+</details>
+
+### 2. Drafts list that shows the sync pain
+
+Build add plus delete plus count with raw DOM. Then write down what breaks when server data arrives late.
+
+Requirements:
+
+- Input plus Add button, list with per item Delete button, total count div
+- Array holds `{ id, title }`, DOM renders from array on every change via full rerender
+- Simulate server update with `setTimeout` that renames one item after 2 seconds, rerender to show it
+- Note in comments what you had to rebuild manually
+
+<details>
+<summary>Solution with explanation</summary>
+
+```html
+<input id="t" placeholder="Draft title" />
+<button onclick="add()">Add</button>
+<div id="count"></div>
+<ul id="list"></ul>
+
+<script>
+  let drafts = [];
+  let nextId = 1;
+
+  function render() {
+    const ul = document.getElementById("list");
+    ul.innerHTML = "";
+    for (let d of drafts) {
+      const li = document.createElement("li");
+      li.textContent = d.title + " ";
+      const btn = document.createElement("button");
+      btn.textContent = "Delete";
+      btn.onclick = () => {
+        drafts = drafts.filter((x) => x.id !== d.id);
+        render();
+      };
+      li.appendChild(btn);
+      ul.appendChild(li);
+    }
+    document.getElementById("count").textContent = `${drafts.length} drafts`;
+  }
+
