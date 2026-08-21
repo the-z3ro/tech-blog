@@ -394,3 +394,44 @@ Requirements:
     document.getElementById("count").textContent = `${drafts.length} drafts`;
   }
 
+  function add() {
+    const v = document.getElementById("t").value.trim();
+    if (!v) return;
+    drafts.push({ id: nextId++, title: v });
+    document.getElementById("t").value = "";
+    render();
+  }
+
+  // Fake server rename after 2s
+  setTimeout(() => {
+    if (drafts[0]) {
+      drafts[0] = {
+        ...drafts[0],
+        title: drafts[0].title + " (edited on server)",
+      };
+      render();
+    }
+  }, 2000);
+
+  render();
+</script>
+```
+
+Why full rerender here: with tiny lists it is simplest and always correct. Pain starts at scale, focus loss, and per item state like open editors. That tradeoff note is the comment to leave in your file.
+
+Common mistake: attaching `onclick` with string HTML and inline ids. Closure version above keeps the right `d.id` per button without global lookup.
+
+</details>
+
+### 3. Posts fetch page with loading and error
+
+Fetch the API from post 03 or 05 and render cards with raw DOM. No React yet.
+
+Requirements:
+
+- Backend running on `3000` with CORS enabled (`npm install cors` in backend plus `app.use(require("cors")())`), frontend on `5173`
+- `fetch http://localhost:3000/posts` on load, show Loading text meanwhile
+- On success render title plus snippet via `createElement` and `textContent`
+- On failure show error div with retry button
+- Add search input that filters rendered posts by title without refetching
+
