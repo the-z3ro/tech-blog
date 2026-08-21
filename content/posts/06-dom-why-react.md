@@ -435,3 +435,72 @@ Requirements:
 - On failure show error div with retry button
 - Add search input that filters rendered posts by title without refetching
 
+<details>
+<summary>Solution with explanation</summary>
+
+```html
+<input id="q" placeholder="Search titles" oninput="filter()" />
+<div id="status">Loading...</div>
+<div id="cards"></div>
+
+<script>
+  let cache = [];
+  const API = "http://localhost:3000";
+
+  async function load() {
+    const status = document.getElementById("status");
+    status.textContent = "Loading...";
+    try {
+      const res = await fetch(`${API}/posts`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      cache = data.posts || data;
+      status.textContent = "";
+      render(cache);
+    } catch (e) {
+      status.textContent = `Failed: ${e.message} `;
+      const btn = document.createElement("button");
+      btn.textContent = "Retry";
+      btn.onclick = load;
+      status.appendChild(btn);
+    }
+  }
+
+  function render(list) {
+    const box = document.getElementById("cards");
+    box.innerHTML = "";
+    for (let p of list) {
+      const div = document.createElement("div");
+      div.className = "post-card";
+      const h = document.createElement("h3");
+      h.textContent = p.title;
+      const para = document.createElement("p");
+      para.textContent = (p.content || "").slice(0, 120);
+      div.appendChild(h);
+      div.appendChild(para);
+      box.appendChild(div);
+    }
+  }
+
+  function filter() {
+    const q = document.getElementById("q").value.toLowerCase();
+    render(cache.filter((p) => p.title.toLowerCase().includes(q)));
+  }
+
+  load();
+</script>
+```
+
+Why cache plus filter locally: search feels instant and avoids hammering the API on every keystroke. Refetch only on publish or explicit refresh. Debounce version of this input appears in the hooks post.
+
+Common mistake: `data.posts` vs `data` shape mismatch. Log the JSON once, then code to the real shape. A fallback like `data.posts || data` unblocks both shapes while learning.
+
+</details>
+
+Next is React basics proper. Same drafts and posts, but state drives UI and React handles the DOM patches. Setup from the top of this post carries straight over.
+
+## If lost / If bored
+
+- If lost: `fetch failed` from `:5173` means backend down or CORS missing, start API on `3000` and add `cors()`. Blank list means shape mismatch, log JSON and check `data.posts || data`.
+- If bored: skip to Project 2 drafts sync pain with server rename, it proves why React exists in 30 lines.
+- Keep for next: `blog-frontend` running on `5173`. Post 07 uses the same Vite app, no new setup.
