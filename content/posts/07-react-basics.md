@@ -39,3 +39,42 @@ The data             View function
 what changes         state to rendered HTML
 ```
 
+You never touch DOM nodes directly for data changes. You update state. React diffs and patches.
+
+```
+You set drafts -> React compares old vs new tree -> React updates changed nodes
+```
+
+Analogy that stuck for me: I run a small blog admin. I hand my editor a new drafts list (state). The editor figures out which cards to add, move, or remove (DOM). I do not rearrange the notice board myself.
+
+Two rules from this:
+
+1. One source of truth per piece of data, held in state
+2. UI is a function of that state, same state gives same UI
+
+> Try it yourself: write down state for a drafts page with filter text, selected draft id, and list. What is state and what is derived?
+
+<details>
+<summary>Solution</summary>
+
+State: `drafts` array, `query` string, `selectedId` or null.
+
+Derived, not state: filtered list (`drafts.filter`), count (`drafts.length`), selected draft object (`drafts.find`). Compute these during render instead of storing separately.
+
+Why: storing derived copies drifts. One update misses one copy and UI shows two truths. Derive on the fly so everything stays in sync.
+
+Common mistake: keeping both `drafts` and `filteredDrafts` in state and updating only one on add. Filter from source each render instead.
+
+</details>
+
+## Vanilla vs React, same counter both ways
+
+Vanilla counter needs manual DOM writes on every change:
+
+```js
+let count = 0;
+
+function updateCounter() {
+  document.getElementById("counter").textContent = count;
+}
+
