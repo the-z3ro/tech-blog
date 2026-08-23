@@ -115,3 +115,41 @@ const el = <h1 className="title">Hello blog</h1>;
 const el = React.createElement("h1", { className: "title" }, "Hello blog");
 ```
 
+Rules that fix 90 percent of beginner errors:
+
+```jsx
+// 1. One root, wrap siblings
+// Wrong: two roots
+// return (<h1>A</h1><p>B</p>);
+
+// Right: div or Fragment, Fragment adds no extra node
+return (
+  <>
+    <h1>A</h1>
+    <p>B</p>
+  </>
+);
+
+// 2. class to className, since class is reserved in JS
+<div className="post-card">Hi</div>
+
+// 3. JS in braces
+const author = "eshan";
+<h1>Hello, {author}!</h1>
+
+// 4. Self close void tags
+<input />
+<img src="cover.jpg" alt="cover" />
+
+// 5. camelCase events
+<button onClick={publish}>Publish</button>
+<input onChange={(e) => setQuery(e.target.value)} />
+```
+
+Why Fragment `<>` over div soup? Extra divs break flex layouts and bloat the tree. Fragment groups without adding a node. Use explicit `<React.Fragment key={id}>` only when mapping with keys on the wrapper itself.
+
+> Try it yourself: fix a component that returns `h1` plus `p` without a wrapper, uses `class`, and uses `onclick` lowercase.
+
+<details>
+<summary>Solution</summary>
+
