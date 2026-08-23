@@ -78,3 +78,40 @@ function updateCounter() {
   document.getElementById("counter").textContent = count;
 }
 
+document.getElementById("inc").addEventListener("click", () => {
+  count++;
+  updateCounter();
+});
+```
+
+React counter declares UI from state:
+
+```jsx
+import { useState } from "react";
+
+function WordCounter() {
+  const [words, setWords] = useState(0);
+
+  return (
+    <div>
+      <p>{words} words</p>
+      <button onClick={() => setWords(words + 50)}>Add paragraph</button>
+    </div>
+  );
+}
+```
+
+Why the React version wins as pages grow: no `getElementById` map to maintain, no manual update calls to forget. `setWords` triggers render, React patches the `p` text. Add ten more fields and the pattern stays the same.
+
+## JSX rules you will hit this week
+
+**JSX** looks like HTML but is JS. It compiles to `React.createElement` calls.
+
+```jsx
+// You write
+const el = <h1 className="title">Hello blog</h1>;
+
+// Roughly what runs
+const el = React.createElement("h1", { className: "title" }, "Hello blog");
+```
+
