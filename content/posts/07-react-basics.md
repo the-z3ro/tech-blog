@@ -202,3 +202,43 @@ function AdminBar() {
 }
 ```
 
+Why destructure `{ label }` in params? Shorter reads plus clear contract at the top. You see required inputs without scanning the body.
+
+Composition with `children` lets wrappers hold any content:
+
+```jsx
+function Card({ title, children }) {
+  return (
+    <div className="card">
+      <div className="card-head">{title}</div>
+      <div className="card-body">{children}</div>
+    </div>
+  );
+}
+
+function DraftCard({ draft }) {
+  return (
+    <Card title={draft.title}>
+      <p>{draft.content.slice(0, 100)}</p>
+      <small>by {draft.author}</small>
+    </Card>
+  );
+}
+```
+
+Why `children` over many props? Card does not need to know what lives inside. Same shell holds drafts, posts, comments, bios. Fewer props, more reuse.
+
+Keys and lists go here too, since every blog list needs them:
+
+```jsx
+// Good: stable id from data
+{
+  posts.map((p) => <DraftCard key={p.id} draft={p} />);
+}
+
+// Risky: index as key
+{
+  posts.map((p, i) => <DraftCard key={i} draft={p} />);
+}
+```
+
