@@ -242,3 +242,43 @@ Keys and lists go here too, since every blog list needs them:
 }
 ```
 
+Why ids over indexes? React uses keys to match old vs new items. With indexes, inserting at the top shifts every key and React reuses the wrong nodes. Inputs keep old text, checkboxes jump. Server `_id` or local `id` stays stable across sorts and filters.
+
+> Try it yourself: render a list of three drafts with ids `a,b,c`, then reverse the array. Predict what breaks with index keys vs id keys.
+
+<details>
+<summary>Solution</summary>
+
+With id keys, React moves nodes correctly. Inputs and state stay with the right draft.
+
+With index keys, node 0 stays node 0 even though data moved. If each row had an input, typed text sticks to position not draft. That is the classic index key bug.
+
+Why: keys are identity, not styling. Stable identity lets the diff move instead of recreate.
+
+Common mistake: `key={Math.random()}`. New key every render forces full recreate and kills performance plus focus. Keys must be stable across renders.
+
+</details>
+
+## useState with immutable updates
+
+`useState` holds component state. Setter triggers rerender with new value.
+
+```jsx
+import { useState } from "react";
+
+function DraftsApp() {
+  const [drafts, setDrafts] = useState([]);
+  const [title, setTitle] = useState("");
+
+  function addDraft() {
+    if (!title.trim()) return;
+    setDrafts([...drafts, { id: Date.now(), title, published: false }]);
+    setTitle("");
+  }
+
+  function togglePublish(id) {
+    setDrafts(
+      drafts.map((d) => (d.id === id ? { ...d, published: !d.published } : d)),
+    );
+  }
+
