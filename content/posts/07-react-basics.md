@@ -153,3 +153,52 @@ Why Fragment `<>` over div soup? Extra divs break flex layouts and bloat the tre
 <details>
 <summary>Solution</summary>
 
+```jsx
+function Fixed() {
+  return (
+    <>
+      <h1 className="title">Hello</h1>
+      <p>World</p>
+      <button onClick={() => console.log("hi")}>Say hi</button>
+    </>
+  );
+}
+```
+
+Why each fix: single root satisfies JSX parser, `className` avoids reserved word clash, `onClick` matches React prop names.
+
+Common mistake: `<label for="x">` in JSX. Use `htmlFor` for the same reserved word reason.
+
+</details>
+
+## Components, props, and children
+
+A **component** is a reusable function that returns JSX. Props are inputs, read only inside.
+
+```jsx
+function PublishButton({ label, onPublish, color }) {
+  return (
+    <button onClick={onPublish} style={{ backgroundColor: color }}>
+      {label}
+    </button>
+  );
+}
+
+function AdminBar() {
+  return (
+    <div>
+      <PublishButton
+        label="Publish"
+        onPublish={() => console.log("pub")}
+        color="green"
+      />
+      <PublishButton
+        label="Delete"
+        onPublish={() => console.log("del")}
+        color="red"
+      />
+    </div>
+  );
+}
+```
+
