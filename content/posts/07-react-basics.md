@@ -319,3 +319,40 @@ setDrafts([...drafts, newDraft]);
 // Wrong object mutate
 // draft.title = "x"; setDrafts(drafts);
 
+// Right object copy
+setDrafts(drafts.map((d) => (d.id === id ? { ...d, title: "x" } : d)));
+```
+
+Why spread works: `[...drafts]` makes a new array with same items. `{ ...d }` makes a new object with same fields plus overrides. Old state stays untouched, new state has a fresh reference React can detect.
+
+`setState` is async in feel. Logging right after set still shows old value. Read the new value on next render or compute it before setting.
+
+> Try it yourself: add `deleteDraft(id)` using filter without mutating. Then add `clearPublished()` that keeps only drafts.
+
+<details>
+<summary>Solution</summary>
+
+```jsx
+function deleteDraft(id) {
+  setDrafts(drafts.filter((d) => d.id !== id));
+}
+
+function clearPublished() {
+  setDrafts(drafts.filter((d) => !d.published));
+}
+```
+
+Why filter: returns a new array with matches removed. Original untouched, reference fresh.
+
+Common mistake: `drafts.splice(i, 1); setDrafts(drafts)`. Splice mutates in place, reference same, render may not fire. Filter avoids the trap.
+
+</details>
+
+## Re-render rules and keeping them cheap
+
+A component rerenders when:
+
+1. Its own state changes
+2. Its parent rerenders, even if props look same
+3. Its props change to a new reference
+
