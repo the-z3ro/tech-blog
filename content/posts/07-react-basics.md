@@ -356,3 +356,40 @@ A component rerenders when:
 2. Its parent rerenders, even if props look same
 3. Its props change to a new reference
 
+```jsx
+function BlogAdmin() {
+  const [filter, setFilter] = useState("");
+
+  return (
+    <div>
+      <input value={filter} onChange={(e) => setFilter(e.target.value)} />
+      <DraftsList /> {/* rerenders on every keystroke too */}
+    </div>
+  );
+}
+```
+
+Why child rerenders when parent types? React reruns the parent function, which recreates child element descriptors by default. Child function runs again unless memoized.
+
+Two cheap fixes I use first:
+
+1. Push state down. If only the search input needs `filter`, move `useState` into `SearchBar`, not the whole admin page.
+2. Memoize heavy children with `memo` when props are stable. Details plus `useMemo` and `useCallback` land in post 08.
+
+```jsx
+// Push down: ExpensiveStats no longer rerenders on filter typing
+function SearchBar() {
+  const [filter, setFilter] = useState("");
+  return <input value={filter} onChange={(e) => setFilter(e.target.value)} />;
+}
+
+function BlogAdmin() {
+  return (
+    <>
+      <SearchBar />
+      <ExpensiveStats />
+    </>
+  );
+}
+```
+
