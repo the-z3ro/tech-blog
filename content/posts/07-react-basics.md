@@ -282,3 +282,40 @@ function DraftsApp() {
     );
   }
 
+  return (
+    <div>
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="New draft title"
+      />
+      <button onClick={addDraft}>Add</button>
+      <ul>
+        {drafts.map((d) => (
+          <li
+            key={d.id}
+            onClick={() => togglePublish(d.id)}
+            style={{ textDecoration: d.published ? "line-through" : "none" }}
+          >
+            {d.title}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+Critical rule: never mutate state directly. React compares references to decide what changed.
+
+```jsx
+// Wrong: same array reference, React may skip render
+drafts.push(newDraft);
+setDrafts(drafts);
+
+// Right: new array, React sees change
+setDrafts([...drafts, newDraft]);
+
+// Wrong object mutate
+// draft.title = "x"; setDrafts(drafts);
+
