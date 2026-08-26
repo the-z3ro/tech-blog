@@ -429,3 +429,40 @@ Requirements:
 - Text red when over 1000, normal below
 - Derived message: Draft, Long read, Too long, computed not stored
 
+<details>
+<summary>Solution with explanation</summary>
+
+```jsx
+import { useState } from "react";
+
+function WordCounter() {
+  const [words, setWords] = useState(0);
+  const label = words > 1000 ? "Too long" : words > 500 ? "Long read" : "Draft";
+
+  return (
+    <div>
+      <p style={{ color: words > 1000 ? "red" : "black" }}>
+        {words} words: {label}
+      </p>
+      <button onClick={() => setWords(words + 50)}>+50</button>
+      <button onClick={() => setWords(Math.max(0, words - 50))}>-50</button>
+      <button onClick={() => setWords(0)}>Reset</button>
+    </div>
+  );
+}
+
+export default WordCounter;
+```
+
+Why derived label: single truth in `words`. Label recomputes each render, never drifts.
+
+Common mistake: storing `label` in state and updating in each handler. Miss one handler and label lies. Derive to avoid the sync job.
+
+</details>
+
+### 2. Drafts manager with publish filter
+
+Full CRUD in state plus filter tabs. This is the mini blog admin.
+
+Requirements:
+
