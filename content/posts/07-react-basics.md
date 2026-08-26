@@ -466,3 +466,80 @@ Full CRUD in state plus filter tabs. This is the mini blog admin.
 
 Requirements:
 
+- Add draft with title, toggle published on click, delete button per row
+- Filter tabs: All, Drafts, Published
+- Count line like `3 drafts, 2 published`
+- Keys by id, no index keys, immutable updates only
+
+<details>
+<summary>Solution with explanation</summary>
+
+```jsx
+import { useState } from "react";
+
+function DraftsManager() {
+  const [drafts, setDrafts] = useState([]);
+  const [title, setTitle] = useState("");
+  const [tab, setTab] = useState("all");
+
+  function add() {
+    if (!title.trim()) return;
+    // Date.now ok for local demo, fast double clicks can collide. Prod uses crypto.randomUUID() or server _id.
+    setDrafts([
+      ...drafts,
+      { id: Date.now(), title: title.trim(), published: false },
+    ]);
+    setTitle("");
+  }
+
+  const visible = drafts.filter((d) => {
+    if (tab === "drafts") return !d.published;
+    if (tab === "published") return d.published;
+    return true;
+  });
+
+  const draftCount = drafts.filter((d) => !d.published).length;
+
+  return (
+    <div>
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Title"
+      />
+      <button onClick={add}>Add</button>
+      <div>
+        <button onClick={() => setTab("all")}>All</button>
+        <button onClick={() => setTab("drafts")}>Drafts</button>
+        <button onClick={() => setTab("published")}>Published</button>
+      </div>
+      <p>
+        {draftCount} drafts, {drafts.length - draftCount} published
+      </p>
+      <ul>
+        {visible.map((d) => (
+          <li key={d.id}>
+            <span
+              onClick={() =>
+                setDrafts(
+                  drafts.map((x) =>
+                    x.id === d.id ? { ...x, published: !x.published } : x,
+                  ),
+                )
+              }
+              style={{ textDecoration: d.published ? "line-through" : "none" }}
+            >
+              {d.title}
+            </span>
+            <button
+              onClick={() => setDrafts(drafts.filter((x) => x.id !== d.id))}
+            >
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
