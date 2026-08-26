@@ -393,3 +393,39 @@ function BlogAdmin() {
 }
 ```
 
+State shape tip for the blog admin: keep flat ids plus maps when lists grow, but start simple with arrays. I start with array of drafts, add `selectedId` string, add `query` string. Only split when filters lag.
+
+```js
+// Simple shape that scales to hundreds of drafts
+const adminState = {
+  drafts: [{ id: "a1", title: "Hello", published: false }],
+  query: "hello",
+  selectedId: "a1",
+};
+```
+
+## Patterns I copy in every React file
+
+**Props down, events up.** Parent owns drafts. Child gets `draft` plus `onToggle(id)`. Child never edits parent array directly. That one direction keeps bugs local.
+
+**Controlled inputs for forms.** `value` plus `onChange` tied to state. Uncontrolled refs have their place for focus and file inputs, but forms that validate and submit are easier controlled. You get live validation and instant reset with `setTitle("")`.
+
+**No derived state.** Filtered list, counts, selected object. Compute during render. Store only raw inputs. This kills a whole class of stale UI bugs.
+
+**Small components with clear names.** `DraftCard`, `PublishButton`, `SearchBar`. Not `Item`, `Wrapper`, `Handler`. File search finds them, new teammates guess what they do.
+
+**Colocate state.** Keep `title` input state inside the form, not the page. Lift only when two siblings truly share it. Lifting everything to App rerenders everything on each keystroke.
+
+## Projects
+
+### 1. Counter with guard rails
+
+Build word count plus limit warning. This cements useState plus derived UI.
+
+Requirements:
+
+- State `words` starting at 0
+- Buttons +50, -50, Reset
+- Text red when over 1000, normal below
+- Derived message: Draft, Long read, Too long, computed not stored
+
