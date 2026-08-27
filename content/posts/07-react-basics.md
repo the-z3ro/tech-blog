@@ -631,3 +631,19 @@ function ThemePicker() {
   );
 }
 
+export default ThemePicker;
+```
+
+Why `Number(e.target.value)`: range inputs give strings. Math and hex need numbers. Convert at the edge on change.
+
+Common mistake: forgetting `padStart`, so 10 becomes `a` not `0a` and hex length breaks. Pad every channel to keep 6 digit hex valid.
+
+</details>
+
+Next is hooks in depth. `useEffect` for fetching the real posts API, plus `useMemo`, `useCallback`, and `useRef` to keep this drafts UI fast and correct.
+
+## If lost / If bored
+
+- If lost: no render after push means mutated state, switch to `[...list]` or `filter`. Input text stuck to wrong row means `key={index}`, switch to stable `id`.
+- If bored: skip to Project 2 drafts manager with tabs, it combines all basics in one admin.
+- Keep for next: `DraftsManager` plus controlled inputs. Post 08 adds effects and memos to this same UI.
