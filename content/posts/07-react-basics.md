@@ -543,3 +543,91 @@ function DraftsManager() {
   );
 }
 
+export default DraftsManager;
+```
+
+Why tab as state and visible derived: tab is input, visible is output. Same pattern as search query plus filtered list.
+
+Common mistake: `key={index}` here breaks toggle after filtering. Row positions shift but indexes do not follow data. Stable `id` fixes it.
+
+</details>
+
+### 3. Color theme picker with live preview
+
+Three sliders plus preview box. This practices many states feeding one view plus hex math.
+
+Requirements:
+
+- States `r,g,b` 0 to 255 with range inputs
+- Preview div with `rgb()` background
+- Hex string below like `#ff8040`, padded to 2 digits per channel
+- Reset button to 128 gray
+
+<details>
+<summary>Solution with explanation</summary>
+
+```jsx
+import { useState } from "react";
+
+function ThemePicker() {
+  const [r, setR] = useState(128);
+  const [g, setG] = useState(128);
+  const [b, setB] = useState(128);
+
+  const hex =
+    "#" +
+    [r, g, b].map((n) => Number(n).toString(16).padStart(2, "0")).join("");
+
+  return (
+    <div>
+      <label>
+        R: {r}
+        <input
+          type="range"
+          min="0"
+          max="255"
+          value={r}
+          onChange={(e) => setR(Number(e.target.value))}
+        />
+      </label>
+      <label>
+        G: {g}
+        <input
+          type="range"
+          min="0"
+          max="255"
+          value={g}
+          onChange={(e) => setG(Number(e.target.value))}
+        />
+      </label>
+      <label>
+        B: {b}
+        <input
+          type="range"
+          min="0"
+          max="255"
+          value={b}
+          onChange={(e) => setB(Number(e.target.value))}
+        />
+      </label>
+      <div
+        style={{
+          width: 160,
+          height: 80,
+          backgroundColor: `rgb(${r}, ${g}, ${b})`,
+        }}
+      />
+      <p>{hex}</p>
+      <button
+        onClick={() => {
+          setR(128);
+          setG(128);
+          setB(128);
+        }}
+      >
+        Reset
+      </button>
+    </div>
+  );
+}
+
