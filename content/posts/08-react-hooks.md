@@ -42,3 +42,39 @@ useRef       mutable box with no rerenders
 useContext   shared values, covered in post 09
 ```
 
+Two rules, no exceptions:
+
+1. Call hooks at the top level only, never inside ifs or loops
+2. Call them from React functions only, not plain JS helpers
+
+Why order matters: React tracks hooks by call order. An early return that skips a hook shifts every hook after it, and state attaches to the wrong call. I lint this with `eslint-plugin-react-hooks` so the editor yells before the browser does.
+
+Recap from post 07 in ten seconds: parent rerender reruns children by default. `memo` skips a child when props stay same. The three hooks below exist to keep those props stable or avoid recompute. If that sentence is fuzzy, reread the rerender section of post 07 first.
+
+> Try it yourself: spot the broken hook order in a component with an early return before `useEffect`. Fix by moving the return below all hooks.
+
+<details>
+<summary>Solution</summary>
+
+```jsx
+// Wrong: return before hook shifts order on some renders
+function Search({ query }) {
+  if (!query) return <p>Type to search</p>;
+  const [results, setResults] = useState([]);
+  useEffect(() => {
+    setResults([]);
+  }, [query]);
+  return <p>{results.length}</p>;
+}
+
+// Right: hooks first, return after
+function Search({ query }) {
+  const [results, setResults] = useState([]);
+  useEffect(() => {
+    setResults([]);
+  }, [query]);
+  if (!query) return <p>Type to search</p>;
+  return <p>{results.length}</p>;
+}
+```
+
