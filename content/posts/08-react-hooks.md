@@ -78,3 +78,43 @@ function Search({ query }) {
 }
 ```
 
+Why: every render must call the same hooks in the same order. Conditions go inside effects or after all hook calls.
+
+Common mistake: `useState` inside a loop to make dynamic fields. Use one state object or array instead, like `useState({})` keyed by field name.
+
+</details>
+
+## useEffect, syncing with the outside world
+
+A **side effect** is anything outside the render: fetch posts, timers, manual DOM focus, event listeners.
+
+I think of it like autosave in my blog editor. Typing is the render. Saving to the server happens on the side, from time to time, not on every keystroke.
+
+```jsx
+useEffect(() => {
+  // run this after render when deps change
+  return () => {
+    // optional cleanup, runs before next run and on unmount
+  };
+}, [dep1, dep2]);
+```
+
+Dependency behavior I keep on a sticky note:
+
+```jsx
+// Once on mount, fetch blog list
+useEffect(() => {
+  loadPosts();
+}, []);
+
+// Every render, almost always a bug, avoid
+useEffect(() => {
+  console.log("rendered");
+});
+
+// On query change, search again
+useEffect(() => {
+  searchPosts(query);
+}, [query]);
+```
+
