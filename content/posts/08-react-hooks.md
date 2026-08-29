@@ -197,3 +197,39 @@ useEffect(() => {
 
 Why functional update `setSeconds((s) => s + 1)`? Interval callback closes over old state. Functional form always gets the latest value instead of the stale one from first render.
 
+> Try it yourself: build an auto increment seconds counter with cleanup. Then add a Start and Stop using a running flag in deps.
+
+<details>
+<summary>Solution</summary>
+
+```jsx
+function SecondsTimer() {
+  const [seconds, setSeconds] = useState(0);
+  const [running, setRunning] = useState(true);
+
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => setSeconds((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [running]);
+
+  return (
+    <div>
+      <p>{seconds}s</p>
+      <button onClick={() => setRunning(false)}>Stop</button>
+      <button onClick={() => setRunning(true)}>Start</button>
+    </div>
+  );
+}
+```
+
+Why dep on `running`: toggling restarts or clears the interval through the same effect. No separate start and stop functions touching timer ids outside React.
+
+Common mistake: empty deps plus reading `running` inside. Effect sees only the first value and never stops. List every outside value you read, or the linter warning is telling the truth.
+
+</details>
+
+## useMemo, skip repeat math on big lists
+
+Problem: every keystroke rerenders, and every rerender reruns expensive filters, even when the list did not change.
+
