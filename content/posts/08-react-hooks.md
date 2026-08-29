@@ -118,3 +118,45 @@ useEffect(() => {
 }, [query]);
 ```
 
+Why empty array means once? React compares deps between renders. Empty means nothing to watch, so it never reruns after mount. No array means no compare at all, so it runs after every render.
+
+Blog list fetch with loading state:
+
+```jsx
+function PostList() {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const res = await fetch("http://localhost:3000/posts");
+        const data = await res.json();
+        if (!cancelled) {
+          setPosts(data.posts || []);
+          setLoading(false);
+        }
+      } catch (e) {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading) return <p>Loading posts...</p>;
+  return (
+    <ul>
+      {posts.map((p) => (
+        <li key={p.id}>{p.title}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
