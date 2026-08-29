@@ -160,3 +160,40 @@ function PostList() {
 }
 ```
 
+Why `cancelled` flag? If the user leaves the page before fetch finishes, `setPosts` would run on an unmounted component. Flag plus cleanup stops that update. Modern fetch can also use `AbortController`, same idea with real cancel.
+
+Detail view that refetches on id change:
+
+```jsx
+function PostDetail({ postId }) {
+  const [post, setPost] = useState(null);
+
+  useEffect(() => {
+    async function loadOne() {
+      const res = await fetch(`http://localhost:3000/posts/${postId}`);
+      const data = await res.json();
+      setPost(data);
+    }
+    loadOne();
+  }, [postId]);
+
+  if (!post) return <p>Loading post...</p>;
+  return <h2>{post.title}</h2>;
+}
+```
+
+Why `[postId]` and not `[]`? With empty deps the first post sticks even after clicking another title. Listing the id tells React to refetch whenever selection changes.
+
+Timer cleanup, the classic leak:
+
+```jsx
+useEffect(() => {
+  const id = setInterval(() => {
+    setSeconds((s) => s + 1);
+  }, 1000);
+  return () => clearInterval(id);
+}, []);
+```
+
+Why functional update `setSeconds((s) => s + 1)`? Interval callback closes over old state. Functional form always gets the latest value instead of the stale one from first render.
+
