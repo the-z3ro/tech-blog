@@ -233,3 +233,48 @@ Common mistake: empty deps plus reading `running` inside. Effect sees only the f
 
 Problem: every keystroke rerenders, and every rerender reruns expensive filters, even when the list did not change.
 
+```jsx
+// Slow: filters 5000 posts on every counter click too
+function BlogSearch({ posts }) {
+  const [query, setQuery] = useState("");
+  const [count, setCount] = useState(0);
+
+  const filtered = posts.filter((p) =>
+    p.title.toLowerCase().includes(query.toLowerCase()),
+  );
+
+  return (
+    <div>
+      <button onClick={() => setCount((c) => c + 1)}>Clicked {count}</button>
+      <input value={query} onChange={(e) => setQuery(e.target.value)} />
+      <p>{filtered.length} matches</p>
+    </div>
+  );
+}
+```
+
+Fix with **useMemo**, recompute only when inputs change:
+
+```jsx
+import { useMemo } from "react";
+
+function BlogSearch({ posts }) {
+  const [query, setQuery] = useState("");
+  const [count, setCount] = useState(0);
+
+  const filtered = useMemo(() => {
+    return posts.filter((p) =>
+      p.title.toLowerCase().includes(query.toLowerCase()),
+    );
+  }, [posts, query]);
+
+  return (
+    <div>
+      <button onClick={() => setCount((c) => c + 1)}>Clicked {count}</button>
+      <input value={query} onChange={(e) => setQuery(e.target.value)} />
+      <p>{filtered.length} matches</p>
+    </div>
+  );
+}
+```
+
