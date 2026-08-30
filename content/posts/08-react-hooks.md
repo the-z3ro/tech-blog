@@ -278,3 +278,46 @@ function BlogSearch({ posts }) {
 }
 ```
 
+Why deps include both `posts` and `query`? Result depends on both. New posts from server must recompute even if query stayed same. Missing dep shows stale lists after refresh.
+
+When I reach for it: filtered feeds, sorted tables, reading time totals, word counts over long content. When I skip it: tiny arrays under a hundred items. Memo has its own cost. Measuring once beats guessing.
+
+> Try it yourself: memoize total views from a posts array so counter clicks do not resum. Deps should be posts only.
+
+<details>
+<summary>Solution</summary>
+
+```jsx
+const totalViews = useMemo(() => {
+  return posts.reduce((s, p) => s + p.views, 0);
+}, [posts]);
+```
+
+Why: total depends only on posts. Counter state excluded, so clicks reuse the cached sum.
+
+Common mistake: memoizing fetch calls. `useMemo` is for sync compute. Data loading stays in `useEffect` with state, or a data hook like SWR.
+
+</details>
+
+## useCallback with memo, stable handlers for memo kids
+
+New problem: functions recreate every render. A memo child sees a new prop each time and rerenders anyway.
+
+```jsx
+// Child memo cannot help, onPublish is new every render
+function Admin({ drafts }) {
+  const [count, setCount] = useState(0);
+
+  function publish(id) {
+    console.log("publish", id);
+  }
+
+  return (
+    <div>
+      <button onClick={() => setCount((c) => c + 1)}>{count}</button>
+      <DraftRow memo onPublish={publish} draft={drafts[0]} />
+    </div>
+  );
+}
+```
+
