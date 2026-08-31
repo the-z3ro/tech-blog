@@ -357,3 +357,42 @@ Rule I follow: `memo` for heavy rows and panels, `useCallback` for handlers pass
 
 **useRef** holds `.current` across renders. Writing it never triggers render. Three uses cover almost everything.
 
+1. Focus and measure DOM nodes directly:
+
+```jsx
+import { useRef } from "react";
+
+function TitleInput() {
+  const inputRef = useRef(null);
+
+  function focus() {
+    inputRef.current.focus();
+  }
+
+  return (
+    <>
+      <input ref={inputRef} placeholder="Post title" />
+      <button onClick={focus}>Focus title</button>
+    </>
+  );
+}
+```
+
+2. Keep previous value for compare:
+
+```jsx
+function ViewCount({ views }) {
+  const prev = useRef(views);
+
+  useEffect(() => {
+    prev.current = views;
+  }, [views]);
+
+  return (
+    <p>
+      Now {views}, before {prev.current}
+    </p>
+  );
+}
+```
+
