@@ -321,3 +321,39 @@ function Admin({ drafts }) {
 }
 ```
 
+Fix with **useCallback**, same function reference across renders unless deps change:
+
+```jsx
+import { useCallback, memo } from "react";
+
+function Admin({ drafts }) {
+  const [count, setCount] = useState(0);
+
+  const publish = useCallback((id) => {
+    console.log("publish", id);
+  }, []);
+
+  return (
+    <div>
+      <button onClick={() => setCount((c) => c + 1)}>{count}</button>
+      <MemoRow onPublish={publish} draft={drafts[0]} />
+    </div>
+  );
+}
+
+const MemoRow = memo(function MemoRow({ onPublish, draft }) {
+  console.log("row rendered");
+  return (
+    <button onClick={() => onPublish(draft.id)}>Publish {draft.title}</button>
+  );
+});
+```
+
+Why empty deps here? `publish` uses no outside state, only its `id` arg, so it never needs a fresh copy. If it read `filter` state, I would list `[filter]`.
+
+Rule I follow: `memo` for heavy rows and panels, `useCallback` for handlers passed to them. One without the other rarely helps. Memo without stable props still rerenders. Stable callback without memo has no one to skip.
+
+## useRef, a box that survives renders without causing them
+
+**useRef** holds `.current` across renders. Writing it never triggers render. Three uses cover almost everything.
+
