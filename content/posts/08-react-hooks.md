@@ -396,3 +396,42 @@ function ViewCount({ views }) {
 }
 ```
 
+Why effect updates after render? During render `prev.current` still holds last value, so UI can show the change. Effect then stores current for next time.
+
+3. Hold timer ids and other mutable handles:
+
+```jsx
+function Autosave({ text }) {
+  const timer = useRef(null);
+
+  function schedule() {
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      console.log("saving", text);
+    }, 800);
+  }
+
+  return <button onClick={schedule}>Save draft</button>;
+}
+```
+
+|                  | useState | useRef                         |
+| ---------------- | -------- | ------------------------------ |
+| Triggers render  | Yes      | No                             |
+| Survives renders | Yes      | Yes                            |
+| Use for          | UI state | DOM nodes, timers, prev values |
+
+Why not state for timer ids? Every keystroke would rerender just to store a number the UI never shows. Ref holds it silently.
+
+> Try it yourself: build a search input with a Focus button using useRef, plus a render count ref that shows how many times the component rendered without causing extra renders.
+
+<details>
+<summary>Solution</summary>
+
+```jsx
+function SearchWithStats() {
+  const [q, setQ] = useState("");
+  const inputRef = useRef(null);
+  const renders = useRef(0);
+  renders.current++;
+
