@@ -435,3 +435,42 @@ function SearchWithStats() {
   const renders = useRef(0);
   renders.current++;
 
+  return (
+    <div>
+      <input
+        ref={inputRef}
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Search posts"
+      />
+      <button onClick={() => inputRef.current.focus()}>Focus</button>
+      <p>Renders so far: {renders.current}</p>
+    </div>
+  );
+}
+```
+
+Why increment during render is okay here for learning but avoid side effects in render in prod: this demo counts renders. Real writes to refs that affect behavior belong in effects or handlers.
+
+Common mistake: reading `ref.current` right after setting state and expecting new DOM. State updates flush later. Read layout in `useEffect` after paint, not inline after set.
+
+</details>
+
+## Custom hooks teaser, full guide lives in post 09 of original series
+
+When fetch plus loading repeats in three components, extract it. Name starts with `use`, calls other hooks inside.
+
+```jsx
+function usePosts() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("http://localhost:3000/posts")
+      .then((r) => r.json())
+      .then((d) => {
+        setData(d.posts || []);
+        setLoading(false);
+      });
+  }, []);
+
