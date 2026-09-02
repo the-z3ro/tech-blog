@@ -474,3 +474,39 @@ function usePosts() {
       });
   }, []);
 
+  return { data, loading };
+}
+```
+
+Why teaser only here? Full custom hooks with `useDebounce`, `useLocalStorage`, browser hooks, and SWR deserve their own post. That is post 09 in the original series and stays the flagship. Here, just notice the pattern: state plus effect moves out, component keeps UI.
+
+## Patterns that keep hooks fast and correct
+
+**List every dep you read.** The exhaustive deps lint is right far more often than I am. Missing `query` or `postId` gives stale UI that looks correct on first load and wrong after interaction.
+
+**Fetch in effects, compute in memos, store handles in refs.** Mixing jobs creates bugs: fetch in memo runs at wrong time, timers in state rerender too much, derived lists in state drift. One job per hook.
+
+**Push state down before memoizing up.** A search query living in the page rerenders the whole admin on each key. Moving `query` into `SearchBox` fixes more than wrapping five children in memo.
+
+**Cleanup everything you subscribe.** Intervals, timeouts, listeners, in flight fetches. Return a cleanup fn that undoes the setup. I review effects by reading setup plus cleanup as a pair. No pair, likely leak.
+
+## Projects
+
+### 1. Blog search with memo and stable rows
+
+Combine `useMemo` plus `memo` plus `useCallback` in one page. This is the performance trio working together.
+
+Requirements:
+
+- Props `posts` with 200 plus items, starter seed below generates them locally
+- Search input filters by title with `useMemo` on `[posts, query]`
+- Counter button that must not refilter or rerender rows
+- Row component wrapped in `memo`, publish handler via `useCallback`
+- Starter seed to paste above component: `const posts = Array.from({ length: 200 }, (_, i) => ({ id: i + 1, title: "Post " + (i + 1), views: (i * 37) % 500 }))`
+
+<details>
+<summary>Solution with explanation</summary>
+
+```jsx
+import { useState, useMemo, useCallback, memo } from "react";
+
