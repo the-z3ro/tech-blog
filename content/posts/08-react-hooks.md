@@ -588,3 +588,39 @@ function AutosaveDraft() {
     return () => clearTimeout(timer.current);
   }, [text]);
 
+  return (
+    <div>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={5}
+      />
+      <p>{status}</p>
+    </div>
+  );
+}
+```
+
+Why cleanup clears first: fast typing cancels pending saves. Only the pause after the last key completes. That is debounce built from primitives.
+
+Common mistake: storing timer in state. Each keystroke would set state for the timer, causing extra renders and tangled deps. Ref holds it silently.
+
+</details>
+
+### 3. Post detail with abort and prev id
+
+Fetch one post by id with real cancel plus prev value display. Closest to production fetching here.
+
+Requirements:
+
+- Props `postId`
+- Fetch on `[postId]` with `AbortController`, abort on cleanup
+- Ignore `AbortError` in catch, show other errors
+- Show current id plus previous id via `useRef` pattern
+
+<details>
+<summary>Solution with explanation</summary>
+
+```jsx
+import { useState, useEffect, useRef } from "react";
+
