@@ -510,3 +510,41 @@ Requirements:
 ```jsx
 import { useState, useMemo, useCallback, memo } from "react";
 
+const Row = memo(function Row({ post, onPublish }) {
+  return (
+    <div>
+      <span>{post.title}</span>
+      <button onClick={() => onPublish(post.id)}>Publish</button>
+    </div>
+  );
+});
+
+function BlogAdmin({ posts }) {
+  const [query, setQuery] = useState("");
+  const [count, setCount] = useState(0);
+
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase();
+    return posts.filter((p) => p.title.toLowerCase().includes(q));
+  }, [posts, query]);
+
+  const publish = useCallback((id) => {
+    console.log("publish", id);
+  }, []);
+
+  return (
+    <div>
+      <button onClick={() => setCount((c) => c + 1)}>Clicks {count}</button>
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search"
+      />
+      {filtered.map((p) => (
+        <Row key={p.id} post={p} onPublish={publish} />
+      ))}
+    </div>
+  );
+}
+```
+
