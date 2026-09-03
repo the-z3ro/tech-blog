@@ -548,3 +548,43 @@ function BlogAdmin({ posts }) {
 }
 ```
 
+Why this proves the trio: counter clicks rerender parent but memo rows skip because `post` objects and `publish` ref stay stable. Typing recomputes filter once per query change, not per click.
+
+Common mistake: inline arrow `onPublish={(id) => publish(id)}` in the map. That creates a new fn per row per render and defeats memo. Pass the stable `publish` directly.
+
+</details>
+
+### 2. Autosave draft with debounce via effect and ref
+
+Save 800ms after typing stops, not on every key. Uses effect cleanup plus ref timer.
+
+Requirements:
+
+- Textarea state `text`
+- Effect on `[text]` that sets timeout to fake save, clears prior timeout on cleanup
+- Status line: Editing, Saving, Saved with timestamp
+- Timer id stored in `useRef`, not state
+
+<details>
+<summary>Solution with explanation</summary>
+
+```jsx
+import { useState, useEffect, useRef } from "react";
+
+function AutosaveDraft() {
+  const [text, setText] = useState("");
+  const [status, setStatus] = useState("Editing");
+  const timer = useRef(null);
+
+  useEffect(() => {
+    setStatus("Editing");
+    clearTimeout(timer.current);
+    if (!text.trim()) return;
+    setStatus("Saving...");
+    timer.current = setTimeout(() => {
+      console.log("saved:", text);
+      setStatus(`Saved at ${new Date().toLocaleTimeString()}`);
+    }, 800);
+    return () => clearTimeout(timer.current);
+  }, [text]);
+
