@@ -624,3 +624,54 @@ Requirements:
 ```jsx
 import { useState, useEffect, useRef } from "react";
 
+function PostDetail({ postId }) {
+  const [post, setPost] = useState(null);
+  const [error, setError] = useState("");
+  const prevId = useRef(postId);
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+
+    async function load() {
+      setPost(null);
+      setError("");
+      try {
+        const res = await fetch(`http://localhost:3000/posts/${postId}`, {
+          signal: ctrl.signal,
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        setPost(await res.json());
+        prevId.current = postId;
+      } catch (e) {
+        if (e.name !== "AbortError") setError(e.message);
+      }
+    }
+
+    load();
+    return () => ctrl.abort();
+  }, [postId]);
+
+  if (error) return <p>Error: {error}</p>;
+  if (!post)
+    return (
+      <p>
+        Loading {postId} (prev {prevId.current})...
+      </p>
+    );
+  return <h2>{post.title}</h2>;
+}
+```
+
+Why abort over cancelled flag here: flag ignores late results, abort actually cancels network work. Fast clicking through posts stops piling requests.
+
+Common mistake: setting `prevId` during render. That overwrites before UI can show the transition. Update after successful load inside the effect, as done here.
+
+</details>
+
+Next is routing plus shared state. Search page becomes `/search`, admin becomes `/admin`, drafts move into Context, then atoms when Context rerenders too much.
+
+## If lost / If bored
+
+- If lost: effect runs every render means missing dep array. Stale list after new posts means missing `posts` in `useMemo` deps. Leak warning means no cleanup return.
+- If bored: skip to Project 1 search with memo plus stable rows, then Project 2 autosave debounce. Those two cover 80 percent of hook value.
+- Keep for next: search plus counter app. Post 09 routes this same page and shares its state.
