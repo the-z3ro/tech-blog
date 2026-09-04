@@ -38,3 +38,45 @@ Multi page:
   /home -> server returns home.html, full reload
   /about -> server returns about.html, full reload
 
+SPA:
+  / -> React shows Home, no reload
+  /admin -> React shows Admin, URL changes, no reload
+```
+
+**Client bundle** is your compiled JS the browser downloads once and runs locally. **Client routing** intercepts link clicks and renders matching components instead of asking the server.
+
+Setup with React Router:
+
+```bash
+npm install react-router-dom
+```
+
+```jsx
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
+
+function App() {
+  return (
+    <BrowserRouter>
+      <nav>
+        <Link to="/">Home</Link>
+        <Link to="/admin">Admin</Link>
+        <Link to="/posts/a1">Post a1</Link>
+      </nav>
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/admin" element={<BlogAdmin />} />
+        <Route path="/posts/:id" element={<PostPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
