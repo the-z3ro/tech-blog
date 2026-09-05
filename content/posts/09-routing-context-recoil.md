@@ -160,3 +160,40 @@ function PostPage() {
 }
 ```
 
+Why separate PostPage: `useParams` only works inside a Route element. Reading id in App directly gives undefined.
+
+Common mistake: `<a href="/admin">` inside SPA. Works but reloads, wipes state, refetches everything. Search for `href="/` in React code during review and swap to Link.
+
+</details>
+
+## Prop drilling, passing through layers that do not care
+
+**Prop drilling** means threading props through middle components just to reach a deep child.
+
+```jsx
+function BlogApp() {
+  const [author, setAuthor] = useState({ name: "eshan" });
+  return <Layout author={author} />;
+}
+
+function Layout({ author }) {
+  return <Sidebar author={author} />;
+}
+
+function Sidebar({ author }) {
+  return <AuthorBadge author={author} />;
+}
+
+function AuthorBadge({ author }) {
+  return <h2>{author.name}</h2>;
+}
+```
+
+Layout and Sidebar never use author. They only forward it. Rename the field and you edit four files. Add a second field and you touch all four again.
+
+Quote I kept from the course because it is accurate: prop drilling is syntactic pain, not always a perf bug. The code gets hard to move even when it runs fine.
+
+## Context, teleport for shared values
+
+**Context** lets any component read shared state without forwarding through middles.
+
