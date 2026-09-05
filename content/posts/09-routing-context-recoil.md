@@ -80,3 +80,44 @@ function App() {
   );
 }
 
+function PostPage() {
+  const { id } = useParams();
+  return <h1>Post {id}</h1>;
+}
+
+function PublishBar() {
+  const navigate = useNavigate();
+
+  async function handlePublish() {
+    await fakePublish();
+    navigate("/admin");
+  }
+
+  return <button onClick={handlePublish}>Publish and go to admin</button>;
+}
+```
+
+Why `Link` and not `a`? `a` reloads the page and loses state. `Link` updates URL and renders the route client side, keeping drafts, filters, and scroll where useful.
+
+Why `*` route last? It catches unknown URLs for a real 404 page. Without it, typos render blank. I add it on day one now after shipping a blank page to friends once.
+
+Lazy routes split the bundle so admin code loads only when visited:
+
+```jsx
+import { lazy, Suspense } from "react";
+
+const Admin = lazy(() => import("./Admin"));
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Suspense fallback={<div>Loading admin...</div>}>
+        <Routes>
+          <Route path="/admin" element={<Admin />} />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  );
+}
+```
+
