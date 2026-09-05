@@ -121,3 +121,42 @@ function App() {
 }
 ```
 
+Why lazy for admin and not home? Home loads first for everyone. Admin loads for few. Splitting keeps first paint fast. I keep home eager, heavy pages lazy.
+
+> Try it yourself: add routes for Home, Admin, and Post detail with id param, plus a 404. Add a nav with Links, no anchors.
+
+<details>
+<summary>Solution</summary>
+
+```jsx
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  useParams,
+} from "react-router-dom";
+
+function App() {
+  return (
+    <BrowserRouter>
+      <nav>
+        <Link to="/">Home</Link>
+        <Link to="/admin">Admin</Link>
+      </nav>
+      <Routes>
+        <Route path="/" element={<h1>Home feed</h1>} />
+        <Route path="/admin" element={<h1>Admin</h1>} />
+        <Route path="/posts/:id" element={<PostPage />} />
+        <Route path="*" element={<h1>404, post not found</h1>} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+function PostPage() {
+  const { id } = useParams();
+  return <h1>Post {id}</h1>;
+}
+```
+
