@@ -197,3 +197,46 @@ Quote I kept from the course because it is accurate: prop drilling is syntactic 
 
 **Context** lets any component read shared state without forwarding through middles.
 
+```jsx
+import { createContext, useContext, useState } from "react";
+
+const AuthorContext = createContext(null);
+
+function BlogApp() {
+  const [author, setAuthor] = useState({ name: "eshan" });
+
+  return (
+    <AuthorContext.Provider value={{ author, setAuthor }}>
+      <Layout />
+    </AuthorContext.Provider>
+  );
+}
+
+function AuthorBadge() {
+  const { author } = useContext(AuthorContext);
+  return <h2>{author.name}</h2>;
+}
+
+// Middles need no changes now
+function Layout() {
+  return <Sidebar />;
+}
+function Sidebar() {
+  return <AuthorBadge />;
+}
+```
+
+Theme toggle, the classic second example, now in blog words:
+
+```jsx
+const ThemeContext = createContext("light");
+
+export function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState("light");
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
