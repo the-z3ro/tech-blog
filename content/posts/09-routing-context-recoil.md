@@ -276,3 +276,39 @@ Common mistake: creating context inside a component. New context object every re
 
 ## Recoil, atoms for fine grained updates
 
+**Recoil** gives global state in small units so components subscribe only to what they use. Change views, only views readers rerender. Theme toggle stays quiet.
+
+Note on currency: Recoil pioneered this atoms model and still teaches it best, but the lib is quiet now. New teams often pick Zustand or Jotai, Redux Toolkit for large apps. I teach Recoil here because the mental model transfers, then show the Zustand swap in patterns. Concepts over lock in.
+
+```bash
+npm install recoil
+```
+
+Core ideas:
+
+```
+Atom is a unit of state, like global useState
+Selector derives from atoms, like a formula cell
+```
+
+Blog admin atoms, same shape as the old LinkedIn counts example but in our domain:
+
+```jsx
+// atoms.js
+import { atom, selector } from "recoil";
+
+export const draftsCountAtom = atom({
+  key: "draftsCount",
+  default: 4,
+});
+
+export const viewsCountAtom = atom({
+  key: "viewsCount",
+  default: 1280,
+});
+
+export const commentsCountAtom = atom({
+  key: "commentsCount",
+  default: 12,
+});
+
