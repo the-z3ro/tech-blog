@@ -240,3 +240,39 @@ export function ThemeProvider({ children }) {
   );
 }
 
+export function useTheme() {
+  return useContext(ThemeContext);
+}
+
+function ThemeButton() {
+  const { theme, setTheme } = useTheme();
+  return (
+    <button
+      className={theme}
+      onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))}
+    >
+      Toggle theme, now {theme}
+    </button>
+  );
+}
+```
+
+Why custom `useTheme` wrapper? One import for consumers, one place to add guards later like missing provider errors. I wrap every context this way now.
+
+Limitation that forces the next step: when context value changes, **every consumer rerenders**, even ones using an untouched part. Blog context holding `{ drafts, views, theme }` rerenders views badges when theme toggles. Small apps never notice. Large admins do.
+
+> Try it yourself: build theme context with light and dark, consume in two far apart components with no prop passing between.
+
+<details>
+<summary>Solution</summary>
+
+Same shape as above: create context, provider with state at top, `useContext` in both leaves. Middles take no props.
+
+Why it works: provider value flows directly to consumers regardless of depth. Add a third consumer anywhere without touching middles.
+
+Common mistake: creating context inside a component. New context object every render breaks memo and confuses devtools. Define contexts at module top, outside components.
+
+</details>
+
+## Recoil, atoms for fine grained updates
+
