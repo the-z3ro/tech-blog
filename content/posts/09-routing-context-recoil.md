@@ -312,3 +312,41 @@ export const commentsCountAtom = atom({
   default: 12,
 });
 
+export const totalActivitySelector = selector({
+  key: "totalActivity",
+  get: ({ get }) => {
+    return get(draftsCountAtom) + get(viewsCountAtom) + get(commentsCountAtom);
+  },
+});
+```
+
+Hooks mirror `useState` but global:
+
+```jsx
+import {
+  useRecoilState,
+  useRecoilValue,
+  useSetRecoilState,
+  RecoilRoot,
+} from "recoil";
+
+function ActivityBadge() {
+  const total = useRecoilValue(totalActivitySelector);
+  return <span>Total activity: {total}</span>;
+}
+
+function ViewsPanel() {
+  const [views, setViews] = useRecoilState(viewsCountAtom);
+  return (
+    <div>
+      Views: {views}
+      <button onClick={() => setViews((v) => v + 1)}>+1 view</button>
+    </div>
+  );
+}
+
+function ResetComments() {
+  const setComments = useSetRecoilState(commentsCountAtom);
+  return <button onClick={() => setComments(0)}>Clear comments</button>;
+}
+
