@@ -350,3 +350,39 @@ function ResetComments() {
   return <button onClick={() => setComments(0)}>Clear comments</button>;
 }
 
+function App() {
+  return (
+    <RecoilRoot>
+      <ActivityBadge />
+      <ViewsPanel />
+      <ResetComments />
+    </RecoilRoot>
+  );
+}
+```
+
+Why three hooks? `useRecoilValue` reads without subscribing to writes, `useSetRecoilState` writes without rerendering on value change. Handlers that only dispatch use the setter form to stay cheap.
+
+Why `RecoilRoot` at top? It holds the atom store, like Provider for Redux or Context. Missing root gives a clear error about hooks outside the tree.
+
+> Try it yourself: add a `publishedCount` atom plus a selector for unpublished = drafts minus published. Show both in a badge that updates only when those two change.
+
+<details>
+<summary>Solution</summary>
+
+```jsx
+import { atom, selector } from "recoil";
+
+export const publishedCountAtom = atom({
+  key: "publishedCount",
+  default: 1,
+});
+
+export const unpublishedSelector = selector({
+  key: "unpublished",
+  get: ({ get }) => get(draftsCountAtom) - get(publishedCountAtom),
+});
+```
+
+Why selector and not state: unpublished derives from two atoms. Storing it separately would drift when either source changes. Derive to stay correct.
+
