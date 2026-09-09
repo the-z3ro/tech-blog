@@ -386,3 +386,39 @@ export const unpublishedSelector = selector({
 
 Why selector and not state: unpublished derives from two atoms. Storing it separately would drift when either source changes. Derive to stay correct.
 
+Common mistake: duplicate `key` strings across atoms. Keys must be unique app wide. Copy pasted keys silently clash. Prefix with domain like `blog/draftsCount`.
+
+</details>
+
+## Dynamic and async state with families and loadables
+
+One atom per post breaks when you do not know post count upfront. **atomFamily** makes atoms on demand by id.
+
+```jsx
+import { atomFamily } from "recoil";
+
+const postAtomFamily = atomFamily({
+  key: "postById",
+  default: (id) => ({ id, title: "", published: false }),
+});
+
+function DraftRow({ id }) {
+  const [post, setPost] = useRecoilState(postAtomFamily(id));
+  return (
+    <div>
+      <p>{post.title || id}</p>
+      <button onClick={() => setPost({ ...post, published: true })}>
+        Publish
+      </button>
+    </div>
+  );
+}
+```
+
+Why family over one big array atom? Editing one post rerenders only its row. Big array atom rerenders every row on any edit. Same fine grained win as atoms, now for collections.
+
+**selectorFamily** fetches by id:
+
+```jsx
+import { selectorFamily } from "recoil";
+
