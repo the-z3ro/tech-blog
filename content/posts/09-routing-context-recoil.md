@@ -422,3 +422,40 @@ Why family over one big array atom? Editing one post rerenders only its row. Big
 ```jsx
 import { selectorFamily } from "recoil";
 
+const postFromServer = selectorFamily({
+  key: "postFromServer",
+  get: (id) => async () => {
+    const res = await fetch(`http://localhost:3000/posts/${id}`);
+    return res.json();
+  },
+});
+```
+
+Async needs loading and error UI. **Loadable** gives status without Suspense forced everywhere:
+
+```jsx
+import { useRecoilValueLoadable } from "recoil";
+
+function PostDetail({ id }) {
+  const loadable = useRecoilValueLoadable(postFromServer(id));
+
+  if (loadable.state === "loading") return <p>Loading post...</p>;
+  if (loadable.state === "hasError") return <p>Failed to load post</p>;
+  return <h2>{loadable.contents.title}</h2>;
+}
+```
+
+Async selector for initial admin stats, same shape as old notifications example but blog flavored:
+
+```jsx
+const adminStatsSelector = selector({
+  key: "adminStats",
+  get: async () => {
+    const res = await fetch("http://localhost:3000/admin/stats");
+    return res.json();
+  },
+});
+```
+
+Why loadable over try catch in component? Selector holds fetch, loadable holds status. Component stays UI only: loading branch, error branch, value branch. No effect code mixed with markup.
+
