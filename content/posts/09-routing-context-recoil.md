@@ -495,3 +495,42 @@ Why mention both? Hiring reality from post 08 of the original series still holds
 
 ## Patterns for routed stateful apps
 
+**URLs for shareable state, atoms for ephemeral UI.** Post id, tab, page number belong in the URL so refresh and share work. Draft text, hover, open menus stay in state. I review every `useState` and ask if refresh should keep it. If yes, move to search params or route.
+
+**One provider per concern.** Theme provider, author provider, store root. Giant single context object brings back the rerender problem Context was meant to solve. Split by update frequency: slow user data apart from fast filter text.
+
+**Fetch in selectors or query libs, not in render.** Render must stay pure. Side work lives in effects, families, or SWR. Components read results and branch on status.
+
+**Colocate routes with their data needs.** `/posts/:id` route renders `PostDetail` that owns its family fetch. Parent does not preload everything for all routes. Each route loads what it shows, shows skeleton meanwhile.
+
+## Projects
+
+### 1. Blog router with three pages plus 404
+
+Wire Home, Admin, Post detail with real params and nav. This locks in router basics.
+
+Requirements:
+
+- `BrowserRouter` with nav Links, no anchors
+- Routes `/`, `/admin`, `/posts/:id`, `*` for 404
+- Post page reads id via `useParams` and fetches that post with loading state
+- After fake publish, `useNavigate` back to admin
+
+<details>
+<summary>Solution with explanation</summary>
+
+```jsx
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  useParams,
+  useNavigate,
+} from "react-router-dom";
+import { useState, useEffect } from "react";
+
+function PostPage() {
+  const { id } = useParams();
+  const [post, setPost] = useState(null);
+
