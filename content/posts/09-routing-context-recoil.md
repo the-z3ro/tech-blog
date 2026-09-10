@@ -459,3 +459,39 @@ const adminStatsSelector = selector({
 
 Why loadable over try catch in component? Selector holds fetch, loadable holds status. Component stays UI only: loading branch, error branch, value branch. No effect code mixed with markup.
 
+## Decision tree I actually use
+
+```
+Need shared state?
+  Close together, parent plus kids?
+    useState plus props
+  Deep but rarely changes, like theme or author?
+    Context API
+  Many readers, frequent writes, need per piece updates?
+    Atoms lib: Recoil for learning, Zustand or Redux in prod
+  Server data with cache, retry, dedupe?
+    SWR or TanStack Query, not plain atoms
+```
+
+Zustand swap in 20 lines for teams skipping Recoil:
+
+```jsx
+import { create } from "zustand";
+
+const useBlogStore = create((set) => ({
+  drafts: 4,
+  views: 1280,
+  bumpViews: () => set((s) => ({ views: s.views + 1 })),
+  reset: () => set({ drafts: 0, views: 0 }),
+}));
+
+function Badge() {
+  const views = useBlogStore((s) => s.views);
+  return <span>{views}</span>;
+}
+```
+
+Why mention both? Hiring reality from post 08 of the original series still holds: many codebases run Redux Toolkit. New smaller apps pick Zustand for less boilerplate. Learn atoms here, ship either at work without relearning the model.
+
+## Patterns for routed stateful apps
+
