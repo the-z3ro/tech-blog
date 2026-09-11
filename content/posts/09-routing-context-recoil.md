@@ -534,3 +534,40 @@ function PostPage() {
   const { id } = useParams();
   const [post, setPost] = useState(null);
 
+  useEffect(() => {
+    fetch(`http://localhost:3000/posts/${id}`)
+      .then((r) => r.json())
+      .then(setPost);
+  }, [id]);
+
+  if (!post) return <p>Loading {id}...</p>;
+  return <h1>{post.title}</h1>;
+}
+
+function Admin() {
+  const navigate = useNavigate();
+  return <button onClick={() => navigate("/")}>Back home</button>;
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <nav>
+        <Link to="/">Home</Link>
+        <Link to="/admin">Admin</Link>
+      </nav>
+      <Routes>
+        <Route path="/" element={<h1>Feed</h1>} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/posts/:id" element={<PostPage />} />
+        <Route path="*" element={<h1>404</h1>} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+```
+
+Why effect dep `[id]`: clicking from post A to post B reuses the same component. Without the dep, old post sticks. Param change must retrigger fetch.
+
+Common mistake: reading params outside a Route element. Hooks like `useParams` need router context. Call them only inside components rendered by Routes.
+
