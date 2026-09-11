@@ -54,6 +54,8 @@ cover:
 
 <span class="prompt">$ whoami</span>
 
+![me](/images/eshan-poster.jpeg)
+
 Hey, I’m **Eshan**, a CSE student.
 
 This blog is basically my **learning log**.
