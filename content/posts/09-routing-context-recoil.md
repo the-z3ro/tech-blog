@@ -571,3 +571,60 @@ Why effect dep `[id]`: clicking from post A to post B reuses the same component.
 
 Common mistake: reading params outside a Route element. Hooks like `useParams` need router context. Call them only inside components rendered by Routes.
 
+</details>
+
+### 2. Theme plus author with Context, no drilling
+
+Replace a drilled blog header with two contexts. Proves teleport without rerender tricks yet.
+
+Requirements:
+
+- `ThemeProvider` with light and dark plus toggle
+- `AuthorProvider` with author object plus login stub
+- Header, Sidebar, Badge consume directly, middles take zero props
+- Toggle button anywhere flips theme for all consumers
+
+<details>
+<summary>Solution with explanation</summary>
+
+```jsx
+import { createContext, useContext, useState } from "react";
+
+const ThemeContext = createContext(null);
+const AuthorContext = createContext(null);
+
+function App() {
+  const [theme, setTheme] = useState("light");
+  const [author] = useState({ name: "eshan" });
+
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme }}>
+      <AuthorContext.Provider value={{ author }}>
+        <Layout />
+      </AuthorContext.Provider>
+    </ThemeContext.Provider>
+  );
+}
+
+function Layout() {
+  return <Sidebar />;
+}
+function Sidebar() {
+  return <Header />;
+}
+function Header() {
+  const { theme, setTheme } = useContext(ThemeContext);
+  const { author } = useContext(AuthorContext);
+  return (
+    <div className={theme}>
+      <h1>{author.name}</h1>
+      <button
+        onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))}
+      >
+        Toggle
+      </button>
+    </div>
+  );
+}
+```
+
