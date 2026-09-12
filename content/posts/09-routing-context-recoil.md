@@ -628,3 +628,43 @@ function Header() {
 }
 ```
 
+Why two providers not one object: theme toggles often, author rarely. Split avoids author readers rerendering on theme flips. Same split by frequency rule from patterns.
+
+Common mistake: value object recreated each render causing all consumers to rerender even when fields equal. For hot paths, memoize value with `useMemo` or split contexts as done here.
+
+</details>
+
+### 3. Blog activity header with atoms plus async stats
+
+Recreate the old LinkedIn header challenge in blog words with sync plus async atoms.
+
+Requirements:
+
+- Atoms for drafts, views, comments with plus and minus buttons per section
+- Selector total badge updating automatically
+- Async selector fetching initial stats from `/admin/stats` with loadable UI
+- Family for per post publish toggles without rerendering the whole list
+
+<details>
+<summary>Solution with explanation</summary>
+
+```jsx
+import {
+  atom,
+  selector,
+  atomFamily,
+  useRecoilState,
+  useRecoilValue,
+  useRecoilValueLoadable,
+  RecoilRoot,
+} from "recoil";
+
+const draftsAtom = atom({ key: "blog/drafts", default: 4 });
+const viewsAtom = atom({ key: "blog/views", default: 1280 });
+const commentsAtom = atom({ key: "blog/comments", default: 12 });
+
+const totalSelector = selector({
+  key: "blog/total",
+  get: ({ get }) => get(draftsAtom) + get(viewsAtom) + get(commentsAtom),
+});
+
