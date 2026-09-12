@@ -668,3 +668,66 @@ const totalSelector = selector({
   get: ({ get }) => get(draftsAtom) + get(viewsAtom) + get(commentsAtom),
 });
 
+const statsFromServer = selector({
+  key: "blog/statsFromServer",
+  get: async () => {
+    const res = await fetch("http://localhost:3000/admin/stats");
+    return res.json();
+  },
+});
+
+const postFamily = atomFamily({
+  key: "blog/post",
+  default: (id) => ({ id, published: false }),
+});
+
+function Header() {
+  const total = useRecoilValue(totalSelector);
+  const remote = useRecoilValueLoadable(statsFromServer);
+  return (
+    <div>
+      <h2>Activity: {total}</h2>
+      {remote.state === "loading" && <p>Syncing stats...</p>}
+      {remote.state === "hasValue" && (
+        <p>Server views: {remote.contents.views}</p>
+      )}
+    </div>
+  );
+}
+
+function Counter({ label, atomRef }) {
+  const [n, setN] = useRecoilState(atomRef);
+  return (
+    <div>
+      {label}: {n}
+      <button onClick={() => setN((v) => v + 1)}>+</button>
+      <button onClick={() => setN((v) => Math.max(0, v - 1))}>-</button>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <RecoilRoot>
+      <Header />
+      <Counter label="Drafts" atomRef={draftsAtom} />
+      <Counter label="Views" atomRef={viewsAtom} />
+      <Counter label="Comments" atomRef={commentsAtom} />
+    </RecoilRoot>
+  );
+}
+```
+
+Why family plus atoms plus async in one header: real admin badges mix local edits with server truth. Local atoms feel instant, async selector reconciles on load, family scales to many posts without widening renders.
+
+Common mistake: fetching in component effect and writing to atoms in two places, causing double loads. Keep server read in the selector, components only consume the loadable.
+
+</details>
+
+That closes the 01 to 09 rebuild. Same knowledge as the original seven, now split so each file owns one job, examples share one blog, and voice matches your 08 to 10 tone. The original 08 Redux, 09 hooks, and 10 TypeScript posts plug straight after this as 10 to 12 with only nav links to add.
+
+## If lost / If bored
+
+- If lost: blank route means missing `BrowserRouter` wrapper or `*` catch placed first. `useParams` undefined means called outside a Route element. 404 on `/admin/stats` means add the stub from Prereqs.
+- If bored: skip to Project 3 activity header, it shows atoms plus async plus families in one real badge.
+- Keep for next: router plus atoms mental model. Original Redux, hooks deep dive, and TypeScript posts plug after as 10 to 12.
