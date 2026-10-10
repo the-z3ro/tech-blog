@@ -1,33 +1,46 @@
 ---
-title: "09 : Custom Hooks - Write Once, Use Everywhere"
+title: "19 : Custom Hooks - Write Once, Use Everywhere"
 date: 2026-05-31T14:00:00+05:30
 draft: false
-tags: []
-categories: []
+tags: ["react", "hooks", "custom-hooks", "swr"]
+categories: ["web-dev"]
 author: "Eshan"
 showToc: true
 TocOpen: false
-weight: 11
-description: ""
+weight: 1900
+description: "Turn repeated state and effect logic into custom hooks: data fetching, browser hooks, debounce, timers and SWR, built on the blog API."
+aliases: ["/posts/11-custom-hooks/", "/posts/16-custom-hooks/", "/posts/custom-hooks/"]
 cover:
   image: ""
   alt: ""
   caption: ""
 ---
 
-> **Blog Summary:** React's built-in hooks are great, but the real superpower is building your own. This covers custom hooks from scratch - data fetching, browser APIs, performance patterns, and the SWR library. By the end you will have a solid collection of hooks you can drop into any project.
+My `.bat` files were my first reusable code: a sequence of commands saved once and run whenever I needed it. A custom hook is a `.bat` file for React logic: state and effects saved once, reused in any component.
 
----
+That one idea cleans up most React codebases. We build the hooks you will actually use: data fetching, debounce, local storage, window size, and SWR for caching.
 
-So we have been through `useState`, `useEffect`, `useMemo`, `useCallback`, `useRef`. Those are all hooks React ships with. And honestly, they cover a lot.
+> **Where we are:** A store and a lot of repeated fetch code. After this post, hooks tidy it up.
+>
+> **Phase 01** · Real frontends · [Series progress](../progress/) · [Start here](../start-here/)
+>
+> **In scope today:** writing custom hooks, data fetching hooks, browser hooks, debounce, SWR.  
+> **Not today:** TanStack Query in depth. The idea is the same as SWR.
+>
+> **Time:** about 20 minutes to read, 60 to build.
 
-But here is the thing nobody told me clearly when I was learning this. The whole hook system is not just a collection of built-in utilities. It is a design pattern. React gives you the primitives, and then it is on you to compose them into logic units that your components can share. That is what custom hooks are.
+> **Warm-up rep (3 minutes, no peeking):** From memory, write the three states a data fetch can be in, and how your UI should show each.
 
-Once this clicked for me it changed the way I look at component code. Whenever I see a component that has a bunch of `useState` and `useEffect` calls all crammed together handling some specific concern, my first thought now is, that probably should be a hook.
+<details>
+<summary>Prereqs to run this file</summary>
 
----
+- The `blog-frontend` app from [the Tailwind post](../17-tailwind-axios-and-a-real-blog-frontend/) and your backend on port 3000 with `GET /posts`.
+- Hooks from [the hooks post](../14-react-hooks-in-depth/) feel comfortable: `useState`, `useEffect`, cleanup.
+- For the SWR part: `npm install swr`.
 
-## 1. What Even Is a Custom Hook?
+</details>
+
+## Part 1 of 8: What Even Is a Custom Hook?
 
 A custom hook is just a JavaScript function. Nothing magical about it. The only two rules it has to follow are:
 
@@ -57,9 +70,9 @@ function getWindowSize() {
 
 The real value of a custom hook is **code reuse across components**. If two components need the same stateful logic, you extract it into a hook. Both components call the hook and get their own isolated copy of that state. No sharing, no interference.
 
----
+> Checkpoint: you should see the same state and effect logic live in one function, used by two components.
 
-## 2. Data Fetching Hooks - Where You Will Use This Most
+## Part 2 of 8: Data Fetching Hooks: Where You Will Use This Most
 
 This is the category you will reach for constantly in real projects. Almost every screen in a React app needs to fetch some data, show a loader while waiting, handle errors. Writing that `useEffect` + `useState` combo in every component gets old fast.
 
@@ -69,20 +82,20 @@ Let's say you have this:
 
 ```jsx
 function App() {
-  const [todos, setTodos] = useState([]);
+  const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    fetch("https://sum-server.100xdevs.com/todos")
+    fetch("http://localhost:3000/posts")
       .then((res) => res.json())
-      .then((data) => setTodos(data.todos));
+      .then((data) => setPosts(data.posts));
   }, []);
 
   return (
     <>
-      {todos.map((todo) => (
-        <div key={todo.id}>
-          <p>{todo.title}</p>
-          <p>{todo.description}</p>
+      {posts.map((post) => (
+        <div key={post.id}>
+          <p>{post.title}</p>
+          <p>{post.content}</p>
         </div>
       ))}
     </>
@@ -90,34 +103,34 @@ function App() {
 }
 ```
 
-This works. But now you have another component that also needs todos. And another page that needs user data. And a profile page that needs posts. You keep writing the same `useEffect` + `useState` pattern over and over.
+This works. But now you have another component that also needs posts. And another page that needs user data. And a profile page that needs posts. You keep writing the same `useEffect` + `useState` pattern over and over.
 
-### Step 1 - Extract the Fetching Logic
+### Step 1: Extract the Fetching Logic
 
 Pull it into a hook:
 
 ```jsx
-function useTodos() {
-  const [todos, setTodos] = useState([]);
+function usePosts() {
+  const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    fetch("https://sum-server.100xdevs.com/todos")
+    fetch("http://localhost:3000/posts")
       .then((res) => res.json())
-      .then((data) => setTodos(data.todos));
+      .then((data) => setPosts(data.posts));
   }, []);
 
-  return todos;
+  return posts;
 }
 
 function App() {
-  const todos = useTodos(); // <- entire fetch logic gone from the component
+  const posts = usePosts(); // <- entire fetch logic gone from the component
 
   return (
     <>
-      {todos.map((todo) => (
-        <div key={todo.id}>
-          <p>{todo.title}</p>
-          <p>{todo.description}</p>
+      {posts.map((post) => (
+        <div key={post.id}>
+          <p>{post.title}</p>
+          <p>{post.content}</p>
         </div>
       ))}
     </>
@@ -125,40 +138,40 @@ function App() {
 }
 ```
 
-The component went from knowing about fetch to knowing nothing about fetch. It just calls `useTodos()` and gets back data. Cleaner, and now any other component can call the same hook.
+The component went from knowing about fetch to knowing nothing about fetch. It just calls `usePosts()` and gets back data. Cleaner, and now any other component can call the same hook.
 
-### Step 2 - Add a Loading State
+### Step 2: Add a Loading State
 
 What shows while the data is being fetched? Right now, nothing. You probably want a loader.
 
 ```jsx
-function useTodos() {
-  const [todos, setTodos] = useState([]);
+function usePosts() {
+  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://sum-server.100xdevs.com/todos")
+    fetch("http://localhost:3000/posts")
       .then((res) => res.json())
       .then((data) => {
-        setTodos(data.todos);
+        setPosts(data.posts);
         setLoading(false);
       });
   }, []);
 
-  return { todos, loading };
+  return { posts, loading };
 }
 
 function App() {
-  const { todos, loading } = useTodos();
+  const { posts, loading } = usePosts();
 
   if (loading) return <div>Loading...</div>;
 
   return (
     <>
-      {todos.map((todo) => (
-        <div key={todo.id}>
-          <p>{todo.title}</p>
-          <p>{todo.description}</p>
+      {posts.map((post) => (
+        <div key={post.id}>
+          <p>{post.title}</p>
+          <p>{post.content}</p>
         </div>
       ))}
     </>
@@ -166,22 +179,22 @@ function App() {
 }
 ```
 
-Now the hook returns an object with both `todos` and `loading`. The component destructures what it needs.
+Now the hook returns an object with both `posts` and `loading`. The component destructures what it needs.
 
-### Step 3 - Auto Refresh / Polling
+### Step 3: Auto Refresh / Polling
 
 Some data needs to stay fresh. Think of a live score board, a notification count, or a stock price. You want to re-fetch every N seconds.
 
 ```jsx
-function useTodos(n) {
-  const [todos, setTodos] = useState([]);
+function usePosts(n) {
+  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   function getData() {
-    fetch("https://sum-server.100xdevs.com/todos")
+    fetch("http://localhost:3000/posts")
       .then((res) => res.json())
       .then((data) => {
-        setTodos(data.todos);
+        setPosts(data.posts);
         setLoading(false);
       });
   }
@@ -196,20 +209,20 @@ function useTodos(n) {
     return () => clearInterval(intervalId); // cleanup on unmount
   }, [n]);
 
-  return { todos, loading };
+  return { posts, loading };
 }
 
 // Usage - refetch every 5 seconds
 function App() {
-  const { todos, loading } = useTodos(5);
+  const { posts, loading } = usePosts(5);
 
   if (loading) return <div>Loading...</div>;
 
   return (
     <>
-      {todos.map((todo) => (
-        <div key={todo.id}>
-          <p>{todo.title}</p>
+      {posts.map((post) => (
+        <div key={post.id}>
+          <p>{post.title}</p>
         </div>
       ))}
     </>
@@ -217,11 +230,11 @@ function App() {
 }
 ```
 
-Notice the cleanup. The `return () => clearInterval(intervalId)` inside `useEffect` runs when the component unmounts or when `n` changes. Without this, you get a memory leak - the interval keeps firing even after the component is gone, trying to set state on something that no longer exists. React will even yell at you in the console about it.
+Notice the cleanup. The `return () => clearInterval(intervalId)` inside `useEffect` runs when the component unmounts or when `n` changes. Without this, you get a memory leak, the interval keeps firing even after the component is gone, trying to set state on something that no longer exists. React will even yell at you in the console about it.
 
 ### A More General useFetch Hook
 
-The `useTodos` hook is very specific. In real projects it makes more sense to have a generic hook that takes any URL:
+The `usePosts` hook is very specific. In real projects it makes more sense to have a generic hook that takes any URL:
 
 ```jsx
 function useFetch(url) {
@@ -252,16 +265,16 @@ function useFetch(url) {
 }
 
 // Usage
-function TodoList() {
+function PostList() {
   const { data, loading, error } = useFetch(
-    "https://sum-server.100xdevs.com/todos",
+    "http://localhost:3000/posts",
   );
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
   return (
     <ul>
-      {data.todos.map((t) => (
+      {data.posts.map((t) => (
         <li key={t.id}>{t.title}</li>
       ))}
     </ul>
@@ -271,13 +284,13 @@ function TodoList() {
 
 This pattern of returning `{ data, loading, error }` from a data hook is so common it is practically a convention. You will see it everywhere including in the SWR library which we will look at later.
 
----
+> Checkpoint: you should see loading first, then data, then an error state when you break the URL on purpose.
 
-## 3. Browser Functionality Hooks
+## Part 3 of 8: Browser Functionality Hooks
 
 This category is about wrapping browser APIs into hooks. The browser exposes a ton of useful things. Network status, mouse position, window size, scroll position, geolocation, clipboard access. Using these directly in components is messy. Hooks clean that up.
 
-### useIsOnline - Network Status
+### useIsOnline: Network Status
 
 Build a hook that tells you if the user is online or offline. The browser gives you `window.navigator.onLine` for the current state, and `online`/`offline` events when it changes.
 
@@ -318,9 +331,9 @@ function App() {
 }
 ```
 
-The event listener cleanup is important here too. `window.addEventListener` needs a corresponding `removeEventListener` with the exact same function reference. This is why we define `handleOnline` and `handleOffline` as named functions before registering them - so we can pass the same reference to `removeEventListener`.
+The event listener cleanup is important here too. `window.addEventListener` needs a corresponding `removeEventListener` with the exact same function reference. This is why we define `handleOnline` and `handleOffline` as named functions before registering them, so we can pass the same reference to `removeEventListener`.
 
-### useMousePointer - Track Cursor Position
+### useMousePointer: Track Cursor Position
 
 ```jsx
 function useMousePointer() {
@@ -355,7 +368,7 @@ function App() {
 
 Notice how the component knows nothing about `addEventListener`. It just gets `x` and `y`. You could use this in a tooltip, a custom cursor, a parallax effect, or anything that needs cursor coordinates.
 
-### useWindowSize - Responsive Logic in JS
+### useWindowSize: Responsive Logic in JS
 
 Sometimes you need to know the window size in JS, not just CSS. Like when you want to render a completely different component, not just hide/show one.
 
@@ -389,11 +402,13 @@ function App() {
 }
 ```
 
----
+> Checkpoint: you should see the value update when you resize the window or go offline.
 
-## 4. Performance and Timer Hooks
+> **Good place to stop.** Everything above is saved in your repo and your head. Next up: *Performance and Timer Hooks*.
 
-### useInterval - Run Code Every N Seconds
+## Part 4 of 8: Performance and Timer Hooks
+
+### useInterval: Run Code Every N Seconds
 
 This one sounds simple but it is surprisingly easy to get wrong. Naive implementations have a stale closure bug where the callback sees old state values.
 
@@ -435,7 +450,7 @@ The `useRef` trick here is important. If you pass `callback` as a dependency of 
 
 This is actually a pattern Dan Abramov wrote about in his blog in 2019, and it is still the correct way to do it.
 
-### useDebounce - Delay Until Typing Stops
+### useDebounce: Delay Until Typing Stops
 
 Debouncing is one of those things you will need constantly. Search inputs, form validation, window resize handlers. The idea is: don't fire immediately, wait until the user has stopped doing the thing for X milliseconds.
 
@@ -484,9 +499,9 @@ const SearchBar = () => {
 
 Without debouncing, a user typing "react hooks" would fire 10 API calls. With 500ms debounce, it fires 1 call after they stop typing. That is the kind of thing that makes the difference between a polished app and a slow one.
 
----
+> Checkpoint: you should see the debounced value update only after you stop typing.
 
-## 5. SWR - When You Don't Want to Build This Yourself
+## Part 5 of 8: SWR: When You Don't Want to Build This Yourself
 
 We have been building data fetching hooks from scratch. That is a great exercise to understand how they work. In production though, there is a library called **SWR** that does all of this and much more.
 
@@ -506,24 +521,24 @@ const fetcher = async (url) => {
 
 function Profile() {
   const { data, error, isLoading } = useSWR(
-    "https://sum-server.100xdevs.com/todos",
+    "http://localhost:3000/posts",
     fetcher,
   );
 
   if (error) return <div>Failed to load</div>;
   if (isLoading) return <div>Loading...</div>;
 
-  return <div>You have {data.todos.length} todos!</div>;
+  return <div>You have {data.posts.length} posts!</div>;
 }
 ```
 
 Compare this with what we built earlier. SWR gives you the same `{ data, error, isLoading }` pattern but under the hood it also handles:
 
-- **Request deduplication** - if 10 components call `useSWR` with the same URL at the same time, only 1 HTTP request happens
-- **Cache** - the data is cached and reused across components and page navigations
-- **Auto revalidation** - refetches when you switch tabs back to the app (focus revalidation)
-- **Polling** - `useSWR(url, fetcher, { refreshInterval: 5000 })` for auto refresh
-- **Optimistic updates** - update UI before the server confirms
+- **Request deduplication**: if 10 components call `useSWR` with the same URL at the same time, only 1 HTTP request happens
+- **Cache**: the data is cached and reused across components and page navigations
+- **Auto revalidation**: refetches when you switch tabs back to the app (focus revalidation)
+- **Polling**: `useSWR(url, fetcher, { refreshInterval: 5000 })` for auto refresh
+- **Optimistic updates**: update UI before the server confirms
 
 ```jsx
 // Auto refresh with SWR
@@ -538,13 +553,13 @@ function LiveScore() {
 
 SWR is a great choice for most data fetching needs. If you find yourself building a complex custom hook for fetching, check if SWR covers it first. Another popular alternative is **React Query** (TanStack Query) which has a similar API but more features for mutations.
 
----
+> Checkpoint: you should see the data refetch by itself when you switch to another tab and back.
 
-## 6. A Few More Hooks Worth Knowing
+## Part 6 of 8: A Few More Hooks Worth Knowing
 
 These come up in real projects often enough that it is worth seeing them at least once.
 
-### useLocalStorage - Persist State Across Refreshes
+### useLocalStorage: Persist State Across Refreshes
 
 `useState` is lost on page refresh. `useLocalStorage` keeps it synced with localStorage so it survives:
 
@@ -583,7 +598,7 @@ function ThemeToggle() {
 }
 ```
 
-### usePrevious - Remember the Last Value
+### usePrevious: Remember the Last Value
 
 Sometimes you want to compare current value against previous value. Useful for animations, transition logic, or analytics:
 
@@ -615,9 +630,9 @@ function Counter() {
 
 This works because `useEffect` runs after the render. So when the component renders with the new `count`, `ref.current` still holds the previous value. Then `useEffect` updates the ref. On the next render, that old value is returned as `prevCount`.
 
----
+> **Good place to stop.** Everything above is saved in your repo and your head. Next up: *Rules and Things to Keep in Mind*.
 
-## 7. Rules and Things to Keep in Mind
+## Part 7 of 8: Rules and Things to Keep in Mind
 
 A few rules that apply to custom hooks the same way they apply to built-in hooks:
 
@@ -646,13 +661,11 @@ function useConditionalFetch(url, enabled) {
 }
 ```
 
-**Each component gets its own state.** Custom hooks do not share state between components. If `ComponentA` and `ComponentB` both call `useTodos()`, they each get their own independent todos state. The hook logic is shared, not the state.
+**Each component gets its own state.** Custom hooks do not share state between components. If `ComponentA` and `ComponentB` both call `usePosts()`, they each get their own independent posts state. The hook logic is shared, not the state.
 
 **Naming matters.** Be descriptive. `useUser` is better than `useData`. `useDebounce` is better than `useDelay`. Someone reading your code should know what the hook does from the name alone.
 
----
-
-## The Mini Project - useGithubProfile
+## Part 8 of 8: The Mini Project: useGithubProfile
 
 Let's put it all together with a small project. Build a hook that fetches a GitHub user's profile, with loading, error handling, and a debounced search input so you are not hammering the GitHub API on every keystroke.
 
@@ -734,27 +747,63 @@ function App() {
 
 This is a real project you can ship. Two custom hooks working together, debouncing real API calls, handling loading and error states properly. Extend it with `useLocalStorage` to save recent searches and you have a pretty complete thing.
 
----
-
 ## Common Confusions
 
 | Confusion                                             | Reality                                                                                                       |
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | "Custom hooks share state between components"         | No. Each component calling the hook gets its own state. The logic is shared, the state is not.                |
 | "My hook must return something"                       | You can return nothing. A hook that only sets up event listeners or timers does not need to return anything.  |
-| "I should put all logic in a single big hook"         | No. Split by concern. One hook per logical unit. `useAuth`, `useTodos`, `useTheme` - not one `useEverything`. |
+| "I should put all logic in a single big hook"         | No. Split by concern. One hook per logical unit. `useAuth`, `usePosts`, `useTheme` - not one `useEverything`. |
 | "useInterval is the same as setInterval in useEffect" | Naive useInterval has a stale closure bug. The ref-based pattern above is the correct way.                    |
 | "SWR is just fetch with loading state"                | SWR adds caching, deduplication, background revalidation, focus refetching. It is a full data layer.          |
 
----
+## Solo rep: Blank page: useLocalStorage
 
-## Key Takeaways
+> **Level 4: Blank page.** One line of goal, an empty file, and your own plan. Docs allowed, copy paste never. No copy paste and no AI help. Docs are fine after 10 minutes stuck.
+
+One line of goal: a `useLocalStorage(key, initial)` hook that works like `useState` but survives a refresh. Start from an empty file, then use it to remember a dark mode choice.
+
+<details>
+<summary>Check yourself, only after you try</summary>
+
+```jsx
+import { useEffect, useState } from "react";
+
+export function useLocalStorage(key, initial) {
+  const [value, setValue] = useState(() => {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : initial;
+  });
+
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(value));
+  }, [key, value]);
+
+  return [value, setValue];
+}
+```
+
+</details>
+
+## Cheat sheet
 
 - A custom hook is any function starting with `use` that calls at least one other hook inside
-- They do not share state - each component gets its own isolated copy of hook state
+- They do not share state: each component gets its own isolated copy of hook state
 - Data fetching hooks evolve: start simple, add loading, add error handling, add polling as needed
 - Browser API hooks (`useIsOnline`, `useMousePointer`, `useWindowSize`) wrap event listeners cleanly and always need cleanup
 - `useDebounce` is a must-have for any input that triggers API calls
 - `useInterval` needs the ref pattern to avoid stale closure issues
-- SWR handles the entire data fetching concern in production - caching, deduplication, revalidation
+- SWR handles the entire data fetching concern in production, caching, deduplication, revalidation
 - When you see repeated `useState` + `useEffect` patterns in multiple components, that is a sign a custom hook is waiting to be extracted
+
+## If lost / If bored
+
+- If lost: a hook that fires forever has a missing or wrong dependency array. `Hooks can only be called at the top level` means you called one inside an `if` or a loop.
+- If bored: build `useDebounce` alone and watch it work in a search box, it is the most satisfying one.
+- Keep for next: your `hooks` folder with `usePosts`, `useDebounce` and `useLocalStorage`. [The TypeScript foundations post](../20-typescript-foundations/) adds types on top of code like this.
+
+## What breaks next
+
+The code is clean and reusable, but a typo in a data shape can hide for weeks. How do you catch it before running?
+
+[Where we are and what is next](../progress/)

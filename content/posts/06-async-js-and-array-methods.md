@@ -1,5 +1,5 @@
 ---
-title: "02 : Async JS and Array Methods - Callbacks to Async Await"
+title: "06 : Async JS and Array Methods - Callbacks to Async Await"
 date: 2026-07-19T10:30:00+05:30
 draft: false
 tags: ["javascript", "async", "promises", "arrays"]
@@ -7,30 +7,48 @@ categories: ["web-dev"]
 author: "Eshan"
 showToc: true
 TocOpen: false
-weight: 2
+weight: 600
 description: "Callbacks, event loop, callback hell, promises, async await, and map filter reduce. The async mental model behind every API call in the blog platform."
+aliases: ["/posts/02-js-async-functional/", "/posts/03-js-async-functional/", "/posts/js-async-functional/"]
 cover:
   image: ""
   alt: ""
   caption: ""
 ---
 
-I understood loops and functions, then I hit `fetch` and everything broke. My posts rendered empty. My console logs printed in the wrong order. I added a `setTimeout` to "fix" it and made it worse.
+Any assistant program, my Jarvis included, has to listen, think and answer without freezing while it waits. That is the problem this post solves. JavaScript runs on one thread and never waits. It says "tell me when it is done" and moves on.
 
-The problem was I treated async code like sync code. This post is the fix. We will stay on the same blog platform from post 01. Posts, views, authors. But now we load them over time instead of having them instantly.
+If you know Python, here is the map:
+
+| Python | JavaScript |
+| ------ | ---------- |
+| `time.sleep(2)` blocks everything | `setTimeout(fn, 2000)` schedules and moves on |
+| `await asyncio.sleep(2)` | `await new Promise((r) => setTimeout(r, 2000))` |
+| `requests.get(url)` blocks | `await fetch(url)` does not block |
+| `asyncio.gather(a, b)` | `Promise.all([a, b])` |
+
+> **Where we are:** You can write JavaScript logic. After this post it can load data from the network.
+>
+> **Phase 01** · JavaScript · [Series progress](../progress/) · [Start here](../start-here/)
+>
+> **In scope today:** callbacks, promises, `async/await`, the event loop, `Promise.all`, `map`, `filter`, `reduce`.  
+> **Not today:** Streams, workers and generators. Rare for what we build.
+>
+> **Time:** about 20 minutes to read, 45 to build.
+
+> **Warm-up rep (3 minutes, no peeking):** From memory, write a `for` loop that sums an array of numbers. Then say out loud why JavaScript cannot wait on a slow task without help.
 
 <details>
 <summary>Prereqs to run this file</summary>
 
-- Node LTS 20 or above, folder `blog-platform`. Check with `node -v`.
+- Node 22 or 24 LTS, folder `blog-platform`. Check with `node -v`.
 - No backend needed. Fake timers with `setTimeout` simulate network so every snippet runs locally.
 - Starter seeds: create `data.txt` with two lines of text for the `fs.readFile` demo, and `draft.txt` with one draft paragraph for the wrapper demo.
-- Full file vs Fragment: blocks with `fetchPosts()` plus `showPopular()` are Full files. `api.example.com` URLs are reading examples only, runnable localhost versions live in Projects below.
 - If `Promise.race` feels new, skip to Project 2 seed first, then return to the Try exercise.
 
 </details>
 
-## Callbacks, functions passed to run later
+## Part 1 of 8: Callbacks, functions passed to run later
 
 A **callback** is a function you pass as an argument to another function, so it can be called later.
 
@@ -98,7 +116,9 @@ Common mistake: forgetting `return` inside the arrow callback. `(p) => { p.views
 
 </details>
 
-## Sync blocking vs async delegation
+> Checkpoint: you should see the callback run later, after the line that comes next in your file.
+
+## Part 2 of 8: Sync blocking vs async delegation
 
 Sync code stops everything until it finishes. That is fine for math. It is terrible for files and network.
 
@@ -161,7 +181,9 @@ Common mistake: adding longer timeouts to "fix" ordering, like waiting 2 seconds
 
 </details>
 
-## Event loop, the one mental model worth memorizing
+> Checkpoint: you should see the sync version freeze everything for the full delay, while the async version lets other lines run.
+
+## Part 3 of 8: Event loop, the one mental model worth memorizing
 
 JS is single threaded. One call stack. One thing at a time. So how does it handle 50 blog readers at once?
 
@@ -191,7 +213,29 @@ console.log("sync");
 
 Why: `Promise.then` goes to the microtask queue, which the loop drains first. You do not need to memorize this for daily work, but when your logs look out of order, this is usually why.
 
-## Callback hell, and why we left it
+Here is the picture to keep in your head:
+
+```
+   your code runs here              the waiting room
+ +--------------------+         +-----------------------------+
+ |     Call Stack     | ------> | timers, fetch, file reads   |
+ |  (one thing at a   |         | (Node or the browser does   |
+ |   time, top down)  |         |  the waiting for you)       |
+ +---------^----------+         +--------------+--------------+
+           |                                   | finished
+           |  event loop moves one             v
+           |  callback in when the     +---------------------+
+           +---------------------------|   callback queues   |
+              stack is empty           +---------------------+
+```
+
+One extra rule worth knowing: promise callbacks (`.then`, `await`) are served before timer callbacks, even a timer with a delay of 0.
+
+> Checkpoint: you should be able to predict the printed order of a `setTimeout`, a promise and a plain log before you run the file.
+
+> **Good place to stop.** Everything above is saved in your repo and your head. Next up: *Callback hell, and why we left it*.
+
+## Part 4 of 8: Callback hell, and why we left it
 
 Nested callbacks work for one level. They collapse after three.
 
@@ -211,7 +255,7 @@ Real version of this: fetch author, then fetch their posts, then fetch comments 
 
 I wrote auth + posts + comments exactly like this once. Adding one retry broke all three levels. That pain is why promises exist.
 
-## Promises, async code you can chain
+## Part 5 of 8: Promises, async code you can chain
 
 A **Promise** is an object that represents a future value. It starts as pending, then becomes fulfilled or rejected.
 
@@ -286,7 +330,9 @@ Common mistake: nesting instead of chaining, like calling `wait` inside `.then` 
 
 </details>
 
-## Async await, same promises with cleaner syntax
+> Checkpoint: you should see `.then` run with the resolved value and `.catch` run when the promise rejects.
+
+## Part 6 of 8: Async await, same promises with cleaner syntax
 
 `async await` is not a new system. It is cleaner syntax over promises. I write almost all new code this way.
 
@@ -361,7 +407,11 @@ Common mistake: calling `await` outside an `async` function. That is a syntax er
 
 </details>
 
-## Fetching together with Promise.all
+> Checkpoint: you should see the same result as the promise chain, with `try` and `catch` handling the failure.
+
+> **Good place to stop.** Everything above is saved in your repo and your head. Next up: *Fetching together with Promise.all*.
+
+## Part 7 of 8: Fetching together with Promise.all
 
 Sequential awaits are easy to read but slow when calls do not depend on each other. Fetching a post and its author can happen at the same time.
 
@@ -385,7 +435,9 @@ Why `Promise.all`? It runs both fetches in parallel and waits for both. Two 400m
 
 Catch: if one promise rejects, `Promise.all` rejects immediately. If you need all results even when some fail, use `Promise.allSettled`. I use `all` for page critical data and `allSettled` for optional widgets like related posts.
 
-## Map, filter, and reduce, the trio that replaces most loops
+> Checkpoint: you should see the total time close to the slowest request, not the sum of all requests.
+
+## Part 8 of 8: Map, filter, and reduce, the trio that replaces most loops
 
 You can write everything with `for`. But after fetching posts, you will transform and filter them constantly. These three cover that.
 
@@ -452,6 +504,8 @@ Common mistake: forgetting `return` in braces version: `.map((p) => { p.title })
 
 </details>
 
+> Checkpoint: you should see `map` return an array of the same length, `filter` a shorter one, and `reduce` a single value.
+
 ## Patterns I use on real async code
 
 **Always handle the error path first.** Every `fetch` can fail. Every `json()` can throw on bad data. I write `try catch` before I write the happy path now. Production APIs return 500s, tokens expire, users go offline mid request.
@@ -489,6 +543,39 @@ The `??` only falls back on null or undefined, not on `0` or empty string. That 
 
 **Arrow functions and `this` still bite in callbacks.** Inside a plain `setTimeout(function () { ... })`, `this` is not your object. Arrow keeps outer `this`. In React function components this rarely matters, but in Node classes and old Express handlers it does. When in doubt I use arrows for inline callbacks.
 
+## Solo rep: Fetch many, survive one failure
+
+> **Level 1: Copy-type.** Type every line yourself while looking at the code. No copy paste. The goal is your fingers learning the shapes. No copy paste and no AI help. Docs are fine after 10 minutes stuck.
+
+Write `fetchAll(urls)` using `Promise.all` and `async/await`. It returns an array of JSON bodies. If one URL fails, the whole function should still return the others, with `null` in the failed slot. Test with two real URLs and one fake.
+
+<details>
+<summary>Check yourself, only after you try</summary>
+
+```js
+async function fetchAll(urls) {
+  return Promise.all(
+    urls.map(async (url) => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        return await res.json();
+      } catch {
+        return null;
+      }
+    })
+  );
+}
+
+fetchAll([
+  "https://jsonplaceholder.typicode.com/posts/1",
+  "https://jsonplaceholder.typicode.com/posts/2",
+  "https://not-a-real-site.invalid/x",
+]).then(console.log);
+```
+
+</details>
+
 ## Projects
 
 All three run with plain Node. No paid APIs. Each one forces async plus array methods together.
@@ -503,6 +590,8 @@ Requirements:
 - Each post has `title`, `words`, `views`
 - Use async await to load, filter views over 100, map to strings like `"TITLE - 3 min"`
 - Handle errors with try catch
+
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. When the timer ends, peek once, close it, and type your final version yourself. Typing it yourself is the point.
 
 <details>
 <summary>Solution with explanation</summary>
@@ -557,8 +646,15 @@ Requirements:
 - Load both with `Promise.all`, print title, comment count, total likes via reduce
 - Add a 2 second timeout race: if loading takes longer, show "Slow network" (hint: `Promise.race`)
 
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. Stuck at minute 10? Open only the first step, then close it and keep typing. Typing it yourself is the point.
+
 <details>
-<summary>Solution with explanation</summary>
+<summary>Stuck? Solution, one step at a time</summary>
+
+Steps are in order. Open only the one you are stuck on, then close it and type it yourself.
+
+<details>
+<summary>Step 1 of 2: function fetchPost(id)</summary>
 
 ```js
 function fetchPost(id) {
@@ -580,7 +676,14 @@ function fetchComments(id) {
     ),
   );
 }
+```
 
+</details>
+
+<details>
+<summary>Step 2 of 2: function timeout(ms)</summary>
+
+```js
 function timeout(ms) {
   return new Promise((_, reject) =>
     setTimeout(() => reject(new Error("Slow network")), ms),
@@ -605,6 +708,8 @@ async function showDashboard(id) {
 showDashboard(2);
 ```
 
+</details>
+
 Why `Promise.race` with timeout: real apps cannot hang forever. Racing the load against a timer gives you control. `Promise.all` inside the race still runs both fetches in parallel.
 
 Common mistake: awaiting fetches one by one (`await fetchPost` then `await fetchComments`) which takes 1200ms instead of 700ms. If neither needs the other result, run them together.
@@ -621,6 +726,8 @@ Requirements:
 - Write `withRetry(fn, times)` that calls an async fn and retries on failure up to times
 - Test with a flaky fetch that fails twice then succeeds
 - Use only promises and async await, no external libs
+
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. When the timer ends, peek once, close it, and type your final version yourself. Typing it yourself is the point.
 
 <details>
 <summary>Solution with explanation</summary>
@@ -672,4 +779,10 @@ Next is Node, HTTP, and Express. We take these async habits and build a real blo
 
 - If lost: promise object logged instead of data means missing second `await` on `res.json()`. Order `A,B,C` with zero timeout is correct, timers always queue.
 - If bored: skip to Project 2 parallel dashboard, it shows why `Promise.all` matters for speed.
-- Keep for next: `wait`, `withRetry`, filter plus map chains. Post 03 handlers reuse the same shapes.
+- Keep for next: `wait`, `withRetry`, filter plus map chains. [The Express post](../07-node-http-and-express/) handlers reuse the same shapes.
+
+## What breaks next
+
+You can fetch and transform data. Who is on the other end, answering the requests?
+
+[Where we are and what is next](../progress/)

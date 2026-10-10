@@ -1,5 +1,5 @@
 ---
-title: "08 : React Hooks in Depth - Effect, Memo, Callback and Ref"
+title: "14 : React Hooks in Depth - Effect, Memo, Callback and Ref"
 date: 2026-09-04T14:00:00+05:30
 draft: false
 tags: ["react", "hooks", "useEffect", "performance"]
@@ -7,29 +7,40 @@ categories: ["web-dev"]
 author: "Eshan"
 showToc: true
 TocOpen: false
-weight: 8
+weight: 1400
 description: "useEffect with fetch and cleanup, useMemo for expensive lists, useCallback with memo, and useRef for DOM and timers. Built on one blog search app."
+aliases: ["/posts/08-react-hooks/", "/posts/11-react-hooks/", "/posts/react-hooks/"]
 cover:
   image: ""
   alt: ""
   caption: ""
 ---
 
-Basics gave us drafts in state. Now real behavior: fetch posts from the API, search them fast, save drafts without hammering the server, and focus inputs without rerenders.
+Hooks feel like magic until you see the picture behind them: every render is a snapshot of your component, with its own props and state frozen inside. `useEffect` runs after that snapshot is on screen, and its cleanup runs before the next one. Almost every hooks bug comes from forgetting the snapshot idea.
 
-One app threads through everything here: a blog search page with a counter, a search box, and a list. Same data, four hooks solving four different pains.
+We cover the hooks you will use daily (`useEffect`, `useMemo`, `useCallback`, `useRef`) and the mistakes that cost the most time.
+
+> **Where we are:** Components and state. After this post effects, memos and refs are in your toolbox.
+>
+> **Phase 01** · React core · [Series progress](../progress/) · [Start here](../start-here/)
+>
+> **In scope today:** `useEffect`, cleanup, StrictMode, `useMemo`, `useCallback`, `useRef`.  
+> **Not today:** Custom hooks and Context. Each gets its own post.
+>
+> **Time:** about 25 minutes to read, 60 to build.
+
+> **Warm-up rep (3 minutes, no peeking):** From memory, write a component with a `count` state and a button that adds one, using the immutable pattern.
 
 <details>
 <summary>Prereqs to run this file</summary>
 
-- Post 07 basics solid, folder `blog-frontend`. Lint helper `npm install -D eslint-plugin-react-hooks` to catch missing deps.
-- Backend optional: `http://localhost:3000/posts` for fetch demos, with CORS enabled from post 06 note. Without backend, use the local `fetchPosts()` timer fake from Project 1.
+- [The React basics post](../13-react-basics/) done and the basics feel solid, folder `blog-frontend`. Lint helper `npm install -D eslint-plugin-react-hooks` to catch missing deps.
+- Backend optional: `http://localhost:3000/posts` for fetch demos, with CORS enabled as shown in [the Express post](../07-node-http-and-express/). Without backend, use the local `fetchPosts()` timer fake from Project 1.
 - Starter seed for Project 1: `const posts = Array.from({ length: 200 }, (_, i) => ({ id: i + 1, title: "Post " + (i + 1), views: (i * 37) % 500 }))`.
-- Full file vs Fragment: Project blocks with imports plus component plus `export default` are Full files. `useMemo` one liners are Fragments.
 
 </details>
 
-## Hooks overview and the two rules
+## Part 1 of 7: Hooks overview and the two rules
 
 Hooks are functions starting with `use` that plug into React from function components.
 
@@ -39,7 +50,7 @@ useEffect    sync with outside world
 useMemo      cache expensive results
 useCallback  keep function identity stable
 useRef       mutable box with no rerenders
-useContext   shared values, covered in post 09
+useContext   shared values, covered in the DOM post
 ```
 
 Two rules, no exceptions:
@@ -49,7 +60,7 @@ Two rules, no exceptions:
 
 Why order matters: React tracks hooks by call order. An early return that skips a hook shifts every hook after it, and state attaches to the wrong call. I lint this with `eslint-plugin-react-hooks` so the editor yells before the browser does.
 
-Recap from post 07 in ten seconds: parent rerender reruns children by default. `memo` skips a child when props stay same. The three hooks below exist to keep those props stable or avoid recompute. If that sentence is fuzzy, reread the rerender section of post 07 first.
+Recap from [the React basics post](../13-react-basics/) in ten seconds: parent rerender reruns children by default. `memo` skips a child when props stay same. The three hooks below exist to keep those props stable or avoid recompute. If that sentence is fuzzy, reread the rerender section of [the React basics post](../13-react-basics/) first.
 
 > Try it yourself: spot the broken hook order in a component with an early return before `useEffect`. Fix by moving the return below all hooks.
 
@@ -84,7 +95,7 @@ Common mistake: `useState` inside a loop to make dynamic fields. Use one state o
 
 </details>
 
-## useEffect, syncing with the outside world
+## Part 2 of 7: useEffect, syncing with the outside world
 
 A **side effect** is anything outside the render: fetch posts, timers, manual DOM focus, event listeners.
 
@@ -229,7 +240,38 @@ Common mistake: empty deps plus reading `running` inside. Effect sees only the f
 
 </details>
 
-## useMemo, skip repeat math on big lists
+> Checkpoint: you should see the effect run after the first render, and run again only when a value in its dependency array changes.
+
+## Part 3 of 7: StrictMode, and why your effect runs twice in development
+
+Open your Vite project's `main.jsx`. The app is wrapped in `<StrictMode>`. In development, React deliberately mounts, unmounts and mounts each component once more, to expose effects that forgot to clean up. So this logs twice:
+
+```jsx
+useEffect(() => {
+  console.log("effect ran");
+}, []);
+```
+
+That is not a bug, and production runs it once. The rule to take away: **if your effect breaks when it runs twice, your cleanup is missing.** A fetch that creates duplicates, a timer that is never cleared, a listener that is never removed.
+
+```jsx
+useEffect(() => {
+  const ctrl = new AbortController();
+  fetch(url, { signal: ctrl.signal })
+    .then((r) => r.json())
+    .then(setData)
+    .catch((e) => {
+      if (e.name !== "AbortError") setError(e.message);
+    });
+  return () => ctrl.abort();
+}, [url]);
+```
+
+> Checkpoint: the log prints twice with `npm run dev`, and once after `npm run build` then `npm run preview`.
+
+> **Good place to stop.** Everything above is saved in your repo and your head. Next up: *useMemo, skip repeat math on big lists*.
+
+## Part 4 of 7: useMemo, skip repeat math on big lists
 
 Problem: every keystroke rerenders, and every rerender reruns expensive filters, even when the list did not change.
 
@@ -299,7 +341,9 @@ Common mistake: memoizing fetch calls. `useMemo` is for sync compute. Data loadi
 
 </details>
 
-## useCallback with memo, stable handlers for memo kids
+> Checkpoint: you should see typing in an unrelated input stop recomputing the filtered list. Add a log to prove it.
+
+## Part 5 of 7: useCallback with memo, stable handlers for memo kids
 
 New problem: functions recreate every render. A memo child sees a new prop each time and rerenders anyway.
 
@@ -353,7 +397,9 @@ Why empty deps here? `publish` uses no outside state, only its `id` arg, so it n
 
 Rule I follow: `memo` for heavy rows and panels, `useCallback` for handlers passed to them. One without the other rarely helps. Memo without stable props still rerenders. Stable callback without memo has no one to skip.
 
-## useRef, a box that survives renders without causing them
+> Checkpoint: you should see a memoized child skip re-rendering when the parent updates unrelated state.
+
+## Part 6 of 7: useRef, a box that survives renders without causing them
 
 **useRef** holds `.current` across renders. Writing it never triggers render. Three uses cover almost everything.
 
@@ -456,7 +502,11 @@ Common mistake: reading `ref.current` right after setting state and expecting ne
 
 </details>
 
-## Custom hooks teaser, full guide lives in post 09 of original series
+> Checkpoint: you should see changing `ref.current` cause no re-render, while reading it later gives the new value.
+
+> **Good place to stop.** Everything above is saved in your repo and your head. Next up: *Custom hooks teaser, full guide lives in [the custom hooks post](../19-custom-hooks/)*.
+
+## Part 7 of 7: Custom hooks teaser, full guide lives in [the custom hooks post](../19-custom-hooks/)
 
 When fetch plus loading repeats in three components, extract it. Name starts with `use`, calls other hooks inside.
 
@@ -478,7 +528,7 @@ function usePosts() {
 }
 ```
 
-Why teaser only here? Full custom hooks with `useDebounce`, `useLocalStorage`, browser hooks, and SWR deserve their own post. That is post 09 in the original series and stays the flagship. Here, just notice the pattern: state plus effect moves out, component keeps UI.
+Why teaser only here? Full custom hooks with `useDebounce`, `useLocalStorage`, browser hooks, and SWR deserve their own post. That is [the custom hooks post](../19-custom-hooks/), the flagship of this stage. Here, just notice the pattern: state plus effect moves out, component keeps UI.
 
 ## Patterns that keep hooks fast and correct
 
@@ -489,6 +539,33 @@ Why teaser only here? Full custom hooks with `useDebounce`, `useLocalStorage`, b
 **Push state down before memoizing up.** A search query living in the page rerenders the whole admin on each key. Moving `query` into `SearchBox` fixes more than wrapping five children in memo.
 
 **Cleanup everything you subscribe.** Intervals, timeouts, listeners, in flight fetches. Return a cleanup fn that undoes the setup. I review effects by reading setup plus cleanup as a pair. No pair, likely leak.
+
+## Solo rep: A countdown with cleanup
+
+> **Level 3: Spec only.** You get a plain sentence of what to build. No code to look at. Docs are allowed after 10 minutes stuck. No copy paste and no AI help. Docs are fine after 10 minutes stuck.
+
+From this spec only: a `Countdown` component that starts at a `seconds` prop, ticks down every second, stops at 0, and leaves no timer running when it unmounts.
+
+<details>
+<summary>Check yourself, only after you try</summary>
+
+```jsx
+import { useEffect, useState } from "react";
+
+export default function Countdown({ seconds }) {
+  const [left, setLeft] = useState(seconds);
+
+  useEffect(() => {
+    if (left <= 0) return;
+    const id = setTimeout(() => setLeft((s) => s - 1), 1000);
+    return () => clearTimeout(id);
+  }, [left]);
+
+  return <p>{left > 0 ? `${left}s left` : "Done"}</p>;
+}
+```
+
+</details>
 
 ## Projects
 
@@ -503,6 +580,8 @@ Requirements:
 - Counter button that must not refilter or rerender rows
 - Row component wrapped in `memo`, publish handler via `useCallback`
 - Starter seed to paste above component: `const posts = Array.from({ length: 200 }, (_, i) => ({ id: i + 1, title: "Post " + (i + 1), views: (i * 37) % 500 }))`
+
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. When the timer ends, peek once, close it, and type your final version yourself. Typing it yourself is the point.
 
 <details>
 <summary>Solution with explanation</summary>
@@ -565,6 +644,8 @@ Requirements:
 - Status line: Editing, Saving, Saved with timestamp
 - Timer id stored in `useRef`, not state
 
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. When the timer ends, peek once, close it, and type your final version yourself. Typing it yourself is the point.
+
 <details>
 <summary>Solution with explanation</summary>
 
@@ -617,6 +698,8 @@ Requirements:
 - Fetch on `[postId]` with `AbortController`, abort on cleanup
 - Ignore `AbortError` in catch, show other errors
 - Show current id plus previous id via `useRef` pattern
+
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. When the timer ends, peek once, close it, and type your final version yourself. Typing it yourself is the point.
 
 <details>
 <summary>Solution with explanation</summary>
@@ -674,4 +757,10 @@ Next is routing plus shared state. Search page becomes `/search`, admin becomes 
 
 - If lost: effect runs every render means missing dep array. Stale list after new posts means missing `posts` in `useMemo` deps. Leak warning means no cleanup return.
 - If bored: skip to Project 1 search with memo plus stable rows, then Project 2 autosave debounce. Those two cover 80 percent of hook value.
-- Keep for next: search plus counter app. Post 09 routes this same page and shares its state.
+- Keep for next: search plus counter app. [The routing and Context post](../15-routing-and-context/) routes this same page and shares its state.
+
+## What breaks next
+
+One page works. Real apps have many pages and values that many components need. How do they share?
+
+[Where we are and what is next](../progress/)

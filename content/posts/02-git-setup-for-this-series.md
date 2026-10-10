@@ -1,5 +1,5 @@
 ---
-title: "00 : Git Setup for This Series - Track Your Blog Code"
+title: "02 : Git Setup for This Series - Track Your Blog Code"
 date: 2026-07-05T11:10:00+05:30
 draft: false
 tags: ["git", "tooling"]
@@ -7,30 +7,41 @@ categories: ["web-dev"]
 author: "Eshan"
 showToc: true
 TocOpen: false
-weight: -1
+weight: 200
 description: "Git vs GitHub, staging vs commit vs push, branching, and merge conflicts. The minimum workflow to follow the blog backend and frontend posts."
+aliases: ["/posts/00-git-setup/", "/posts/01-git-setup/", "/posts/git-setup/"]
 cover:
   image: ""
   alt: ""
   caption: ""
 ---
 
-I lost code twice before I took Git seriously. Once I overwrote my Express API with an old copy. Once I broke auth and could not go back. Both times I had no commits to return to. This post is the safety net for the rest of the series.
+I lost my first Jarvis for good. While debugging, I deleted everything by mistake, and nothing could bring it back. That is why Git comes this early in the series, before any real code.
 
-We will use Git to track the blog platform code from post 01 onward. No theory overload, just the flow you will use daily plus what to do when branches clash.
+Git gives you what I did not have: **history** (go back to any earlier version), **branches** (try risky ideas safely), and a **remote copy** (survive a dead PC). Add GitHub and you meet the 3-2-1 backup rule for code: 3 copies, on 2 different places, with 1 of them off-site. By the end your `blog-platform` folder is under Git and pushed.
+
+> **Where we are:** A `blog-platform` folder and nothing else. After this post it has a safety net.
+>
+> **Phase 01** · Workshop · [Series progress](../progress/) · [Start here](../start-here/)
+>
+> **In scope today:** `init`, `add`, `commit`, branches, merge, conflicts, and `push` to GitHub.  
+> **Not today:** Rebase, hooks and CI. Team workflows come in a later post.
+>
+> **Time:** about 15 minutes to read, 30 to build.
+
+> **Warm-up rep (3 minutes, no peeking):** From memory, write the commands to go into your `blog-platform` folder and list everything in it, including hidden files.
 
 <details>
 <summary>Prereqs to run this file</summary>
 
-- Terminal basics: `mkdir`, `cd`, `ls`. Any OS terminal works.
+- Terminal basics from [the terminal post](../01-the-terminal-in-20-minutes/): `mkdir`, `cd`, `ls`. Any OS terminal works.
 - Git installed: check with `git --version`. If missing, install from git-scm.com and restart terminal.
 - Folder: `blog-platform`. Create with `mkdir blog-platform && cd blog-platform`.
 - GitHub account for the push project at the end. HTTPS with a personal access token works, SSH works too.
-- Full file vs Fragment: `bash` blocks labeled Full file are paste ready. `git status` checks are safe to run anytime.
 
 </details>
 
-## Git vs GitHub in one minute
+## Part 1 of 4: Git vs GitHub in one minute
 
 **Git** is the local tool on your machine. It tracks changes, lets you revert, and manages branches. Free, open source, works offline.
 
@@ -73,7 +84,9 @@ Common mistake: running all Git commands from home directory. Always `cd` into y
 
 </details>
 
-## The core flow: edit, stage, commit, push
+> Checkpoint: you should see `git --version` print a version number. That is the only setup this post needs.
+
+## Part 2 of 4: The core flow: edit, stage, commit, push
 
 Files move through four places:
 
@@ -150,7 +163,9 @@ Common mistake: `git add .` then realizing you staged secrets like `.env`. Check
 
 </details>
 
-## Branching without fear
+> Checkpoint: you should see `git log --oneline` list your first commit with a short hash on the left.
+
+## Part 3 of 4: Branching without fear
 
 Main should always run. New work happens on branches.
 
@@ -199,7 +214,11 @@ Common mistake: merging with uncommitted changes on main. Commit or stash first,
 
 </details>
 
-## Merge conflicts, what they look like and how to fix
+> Checkpoint: you should see `git branch` list your new branch with a star, and switching back to `main` bring back the old file contents.
+
+> **Good place to stop.** Everything above is saved in your repo and your head. Next up: *Merge conflicts, what they look like and how to fix*.
+
+## Part 4 of 4: Merge conflicts, what they look like and how to fix
 
 Conflicts happen when two branches edit the same lines differently. Git cannot pick for you, so it marks the file.
 
@@ -234,6 +253,8 @@ Why manual fix instead of auto pick? PORT 3000 vs 5000 changes Postman URLs, env
 
 To see conflicts clearly I use `git status` for files plus `git diff` for content. `git log --merge` shows which commits clashed, useful when the conflict spans many files.
 
+> Checkpoint: you should see the markers `<<<<<<<`, `=======` and `>>>>>>>` inside the file while the merge is paused. After you fix it and commit, `git status` says the working tree is clean.
+
 ## Patterns worth copying
 
 **Commit small and readable.** `feat: add GET posts` beats `stuff`. I follow type plus scope: `feat`, `fix`, `docs`, `chore`. Future search with `git log --oneline --grep=feat` actually works.
@@ -243,6 +264,30 @@ To see conflicts clearly I use `git status` for files plus `git diff` for conten
 **Never commit secrets.** `.env` with JWT secrets and Mongo URIs stays local. Commit `.env.example` with fake values so others know what to create. If you already pushed a secret, rotate it. Deleting the file later does not remove it from history.
 
 **Check status and diff before every commit.** Ten seconds here prevents committing debug logs, large dumps, or half finished auth middleware.
+
+## Solo rep: The Git gym
+
+> **Level 1: Copy-type.** Type every line yourself while looking at the code. No copy paste. The goal is your fingers learning the shapes. No copy paste and no AI help. Docs are fine after 10 minutes stuck.
+
+Make a new folder `git-gym`. Initialize a repo, create `a.txt`, and commit it. Create a branch `try`, change the file, commit, switch back to `main`, and merge. Type every command yourself, twice in a row. The second run should take under 3 minutes.
+
+<details>
+<summary>Check yourself, only after you try</summary>
+
+```bash
+mkdir git-gym && cd git-gym
+git init
+echo one > a.txt
+git add . && git commit -m "feat: add a.txt"
+git switch -c try
+echo two >> a.txt
+git commit -am "feat: second line"
+git switch main
+git merge try
+git log --oneline
+```
+
+</details>
 
 ## Projects
 
@@ -256,6 +301,8 @@ Requirements:
 - At least 2 commits with clear messages
 - GitHub repo connected as origin, pushed main
 - README lists how to run `node post.js`
+
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. When the timer ends, peek once, close it, and type your final version yourself. Typing it yourself is the point.
 
 <details>
 <summary>Solution with explanation</summary>
@@ -282,16 +329,18 @@ Simulate real teamwork solo. Build posts CRUD on a branch, merge via a clean com
 Requirements:
 
 - Branch `feature/posts-crud` from main
-- Add `server.js` with GET posts from post 03
+- Add `server.js` with GET posts from [the Express post](../07-node-http-and-express/)
 - Commit on the branch, merge to main, tag the merge with log check
 - Delete the branch after merge
+
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. When the timer ends, peek once, close it, and type your final version yourself. Typing it yourself is the point.
 
 <details>
 <summary>Solution with explanation</summary>
 
 ```bash
 git checkout -b feature/posts-crud
-# add server.js from post 03 here
+# add server.js from the Express post here
 git add server.js
 git commit -m "feat: add posts list API"
 git checkout main
@@ -316,6 +365,8 @@ Requirements:
 - On new branch, set PORT to 5000 and commit
 - Merge and resolve to 3000, commit the fix
 - Verify server still starts
+
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. When the timer ends, peek once, close it, and type your final version yourself. Typing it yourself is the point.
 
 <details>
 <summary>Solution with explanation</summary>
@@ -345,10 +396,16 @@ Common mistake: committing with markers still in the file. The server then crash
 
 </details>
 
-Use this workflow from the next post onward. Every backend and frontend change gets a branch, a small commit, and a push. When auth breaks in post 04, you will thank this post.
+Use this workflow from the next post onward. Every backend and frontend change gets a branch, a small commit, and a push. When auth breaks in [the auth post](../10-auth-with-bcrypt-and-jwt/), you will thank this post.
 
 ## If lost / If bored
 
 - If lost: `not a git repository` means you are outside `blog-platform`, run `pwd` and `cd` back in. `permission denied on push` means check remote with `git remote -v` and token.
 - If bored: skip to Project 3 conflict drill, it teaches more than rereading commands.
-- Keep for next: this `blog-platform` folder plus GitHub remote. Post 01 code lives here too.
+- Keep for next: this `blog-platform` folder plus GitHub remote. [The JavaScript runtime post](../05-js-language-and-runtime/) code lives here too.
+
+## What breaks next
+
+Your code has a safety net. The next question is what you put inside it.
+
+[Where we are and what is next](../progress/)

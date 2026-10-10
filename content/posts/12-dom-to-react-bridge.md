@@ -1,5 +1,5 @@
 ---
-title: "06 : DOM to React Bridge - Why Raw DOM Breaks"
+title: "12 : DOM to React Bridge - Why Raw DOM Breaks"
 date: 2026-08-20T13:00:00+05:30
 draft: false
 tags: ["dom", "frontend", "react", "vite"]
@@ -7,29 +7,40 @@ categories: ["web-dev"]
 author: "Eshan"
 showToc: true
 TocOpen: false
-weight: 6
+weight: 1200
 description: "Browser JS vs Node, DOM trees and selectors, raw manipulation pain, and why React exists. Setup included first so you can follow along."
+aliases: ["/posts/06-dom-why-react/", "/posts/09-dom-why-react/", "/posts/dom-why-react/"]
 cover:
   image: ""
   alt: ""
   caption: ""
 ---
 
-My backend served blog posts fine. Then I tried to show them without React. One list, three buttons, and my UI went out of sync with my data. Deleted posts still showed. Counts were wrong. I refreshed to fix it.
+Every page you see is a tree. The browser reads your HTML, builds that tree in memory, and calls it the DOM. JavaScript can change the tree, and the screen follows. This is the foundation under every framework, and once you have felt how clumsy it is to manage by hand, you will understand why React exists.
 
-This post is that mess plus the way out. We set up React first, then break raw DOM on purpose so the React fix makes sense.
+We build a few small things with the raw DOM on purpose, then watch it fall apart as the page grows.
+
+> **Where we are:** A complete backend. After this post you can see it in a browser.
+>
+> **Phase 01** · React core · [Series progress](../progress/) · [Start here](../start-here/)
+>
+> **In scope today:** the DOM, selectors, events, raw updates, and why frameworks exist.  
+> **Not today:** React itself. That is the next stretch.
+>
+> **Time:** about 20 minutes to read, 45 to build.
+
+> **Warm-up rep (3 minutes, no peeking):** From memory, name the five HTTP status codes from [the Express post](../07-node-http-and-express/) and when you would return each.
 
 <details>
 <summary>Prereqs to run this file</summary>
 
-- Node LTS 20 or above. Two folders: `blog-platform` backend on `3000` for Project 3, `blog-frontend` for Vite below.
+- Node 22 or 24 LTS. Two folders: `blog-platform` backend on `3000` for Project 3, `blog-frontend` for Vite below.
 - Frontend: `npm create vite@latest blog-frontend -- --template react`, `npm install`, `npm run dev` gives `http://localhost:5173`.
-- Backend for fetch project: keep post 03 or 05 API running on `3000`. Browser fetch from `:5173` to `:3000` needs CORS, run `npm install cors` in backend and add the two line `cors()` setup shown in the fetch project.
-- Full file vs Fragment: `index.html` plus `script` blocks in Projects are Full files to save and open. Selector one liners are Fragments for console.
+- Backend for fetch project: keep [the Express post](../07-node-http-and-express/) or [the MongoDB post](../11-mongodb-and-mongoose/) API running on `3000`. Browser fetch from `:5173` to `:3000` needs CORS, run `npm install cors` in backend and add the two line `cors()` setup shown in the fetch project.
 
 </details>
 
-## Setup first, so nothing blocks you later
+## Part 1 of 5: Setup first, so nothing blocks you later
 
 Old drafts put setup at the end. That never made sense. Do it now once.
 
@@ -71,7 +82,9 @@ Common mistake: editing files in `dist` after a build instead of `src`. `dist` i
 
 </details>
 
-## Browser JS vs Node, same language different tools
+> Checkpoint: you should see the Vite dev server running on port 5173 with the starter page.
+
+## Part 2 of 5: Browser JS vs Node, same language different tools
 
 JS runs in both, but the extra APIs differ. This is why `document` code crashes in Node and `fs` code crashes in the browser.
 
@@ -100,7 +113,7 @@ Same lines in Node print `undefined`. Not a bug. Different runtime, different gl
 
 Why does this matter for the blog? Your Express code uses `fs` and `process.env`. Your frontend code uses `document` and `window`. Sharing helper files between them works only for pure logic like `slugify` or `readingTime`. Anything touching runtime APIs must stay on its side.
 
-## DOM tree, selectors, and raw updates
+## Part 3 of 5: DOM tree, selectors, and raw updates
 
 **DOM** is the browser in memory view of the page as a tree of objects. HTML is static text. DOM is live and editable by JS.
 
@@ -190,7 +203,11 @@ Common mistake: `list.innerHTML += "<div>" + val + "</div>"`. Works until someon
 
 </details>
 
-## Where raw DOM falls apart
+> Checkpoint: you should see changing `textContent` in the console change the page instantly, with no reload.
+
+> **Good place to stop.** Everything above is saved in your repo and your head. Next up: *Where raw DOM falls apart*.
+
+## Part 4 of 5: Where raw DOM falls apart
 
 One add function feels fine. A real drafts page needs add, edit, delete, filter, and server sync. That is where manual DOM breaks.
 
@@ -256,7 +273,7 @@ Common mistake: adding `id` attributes and thinking sync is solved. Ids help fin
 
 </details>
 
-## Why frameworks showed up
+## Part 5 of 5: Why frameworks showed up
 
 Short history so the React choice makes sense:
 
@@ -306,6 +323,35 @@ Why `className` not `class`? `class` is reserved in JS. JSX borrows JS rules, so
 
 **Escape by default.** Blog titles, comments, bios. All user text goes through `textContent` or a sanitizer. I treat `innerHTML` with user data as a bug in review, even if it works in the demo.
 
+## Solo rep: A to-do list in raw DOM
+
+> **Level 3: Spec only.** You get a plain sentence of what to build. No code to look at. Docs are allowed after 10 minutes stuck. No copy paste and no AI help. Docs are fine after 10 minutes stuck.
+
+From this spec only: a page with an input and a button. Clicking the button adds the input text to a list. Clicking a list item removes it. Use only `createElement`, `addEventListener` and `textContent`. No libraries.
+
+<details>
+<summary>Check yourself, only after you try</summary>
+
+```html
+<input id="text" />
+<button id="add">Add</button>
+<ul id="list"></ul>
+<script>
+  const input = document.getElementById("text");
+  const list = document.getElementById("list");
+  document.getElementById("add").addEventListener("click", () => {
+    if (!input.value.trim()) return;
+    const li = document.createElement("li");
+    li.textContent = input.value;
+    li.addEventListener("click", () => li.remove());
+    list.appendChild(li);
+    input.value = "";
+  });
+</script>
+```
+
+</details>
+
 ## Projects
 
 ### 1. Read time saver with raw DOM
@@ -318,6 +364,8 @@ Requirements:
 - On click, show words per minute plus a slow or fast label
 - Validate numbers, show error text on bad input, no alerts
 - Clear result styling via classList, not inline styles everywhere
+
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. When the timer ends, peek once, close it, and type your final version yourself. Typing it yourself is the point.
 
 <details>
 <summary>Solution with explanation</summary>
@@ -362,6 +410,8 @@ Requirements:
 - Array holds `{ id, title }`, DOM renders from array on every change via full rerender
 - Simulate server update with `setTimeout` that renames one item after 2 seconds, rerender to show it
 - Note in comments what you had to rebuild manually
+
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. When the timer ends, peek once, close it, and type your final version yourself. Typing it yourself is the point.
 
 <details>
 <summary>Solution with explanation</summary>
@@ -425,7 +475,7 @@ Common mistake: attaching `onclick` with string HTML and inline ids. Closure ver
 
 ### 3. Posts fetch page with loading and error
 
-Fetch the API from post 03 or 05 and render cards with raw DOM. No React yet.
+Fetch the API from [the Express post](../07-node-http-and-express/) or [the MongoDB post](../11-mongodb-and-mongoose/) and render cards with raw DOM. No React yet.
 
 Requirements:
 
@@ -434,6 +484,8 @@ Requirements:
 - On success render title plus snippet via `createElement` and `textContent`
 - On failure show error div with retry button
 - Add search input that filters rendered posts by title without refetching
+
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. When the timer ends, peek once, close it, and type your final version yourself. Typing it yourself is the point.
 
 <details>
 <summary>Solution with explanation</summary>
@@ -503,4 +555,10 @@ Next is React basics proper. Same drafts and posts, but state drives UI and Reac
 
 - If lost: `fetch failed` from `:5173` means backend down or CORS missing, start API on `3000` and add `cors()`. Blank list means shape mismatch, log JSON and check `data.posts || data`.
 - If bored: skip to Project 2 drafts sync pain with server rename, it proves why React exists in 30 lines.
-- Keep for next: `blog-frontend` running on `5173`. Post 07 uses the same Vite app, no new setup.
+- Keep for next: `blog-frontend` running on `5173`. [The React basics post](../13-react-basics/) uses the same Vite app, no new setup.
+
+## What breaks next
+
+Raw DOM works, but it gets painful fast. How do big interfaces stay manageable?
+
+[Where we are and what is next](../progress/)

@@ -1,5 +1,5 @@
 ---
-title: "05 : MongoDB and Mongoose - Persisting the Blog"
+title: "11 : MongoDB and Mongoose - Persisting the Blog"
 date: 2026-08-13T12:00:00+05:30
 draft: false
 tags: ["mongodb", "mongoose", "database"]
@@ -7,30 +7,41 @@ categories: ["web-dev"]
 author: "Eshan"
 showToc: true
 TocOpen: false
-weight: 5
+weight: 1100
 description: "Clusters to collections, schemas to models, CRUD, populate, and a full auth plus DB blog backend. The single DB source for this series."
+aliases: ["/posts/05-mongodb-mongoose/", "/posts/08-mongodb-mongoose/", "/posts/mongodb-mongoose/"]
 cover:
   image: ""
   alt: ""
   caption: ""
 ---
 
-My blog API worked until I restarted the server. Every post vanished. Every author gone. That is what in memory storage does. It lives in RAM, dies on restart, and never shares between two server instances.
+Beginner programs, like the library management app I wrote in C++ at school, keep their data in memory, so closing the program erases it unless you write it to a file. A database is that file done properly: fast search, safe writes, many users at once, and a way to ask questions about the data.
 
-This post fixes that with MongoDB for storage and Mongoose for structure. Same routes and auth from post 04, but data survives.
+We start with MongoDB because its documents look like the JavaScript objects you already write. Later in the series we meet SQL, and you will see when each one is the better choice.
+
+> **Where we are:** Auth works but data lives in arrays. After this post it lives in MongoDB.
+>
+> **Phase 01** · Data: MongoDB · [Series progress](../progress/) · [Start here](../start-here/)
+>
+> **In scope today:** Mongo concepts, Mongoose schemas, CRUD, `populate`, aggregation.  
+> **Not today:** SQL databases and Prisma. They come in a later stretch.
+>
+> **Time:** about 20 minutes to read, 60 to build.
+
+> **Warm-up rep (3 minutes, no peeking):** From memory, list the three things your server needs from `.env` to run the auth flow, and say why `.env` is never committed.
 
 <details>
 <summary>Prereqs to run this file</summary>
 
-- Post 04 auth flow working. Folder: `blog-platform`.
+- The auth flow from [the auth post](../10-auth-with-bcrypt-and-jwt/) working. Folder: `blog-platform`.
 - Installs: `npm install mongoose dotenv`. Check with `node -e "require('mongoose'); console.log('ok')"`.
 - Env: `.env` needs `MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/blogdb` and `JWT_SECRET=dev-only-change-in-prod`. Copy from `.env.example` block below. Atlas free cluster works: create cluster, allow IP for learning, create DB user, paste the srv string.
 - If connect hangs with timeout, `MONGO_URI` is missing or IP not allowed. The fail fast check in the connect snippet prints `Set MONGO_URI in .env first`.
-- Full file vs Fragment: schema plus route blocks with imports and `app.listen` are Full files. CRUD one liners are Fragments to run inside an async handler.
 
 </details>
 
-## Why an outside database
+## Part 1 of 5: Why an outside database
 
 Two problems force the move:
 
@@ -67,7 +78,7 @@ Common mistake: thinking `app.listen` twice in one file shares memory across mac
 
 </details>
 
-## Clusters, databases, collections
+## Part 2 of 5: Clusters, databases, collections
 
 Mongo terms map to familiar ideas:
 
@@ -91,7 +102,6 @@ npm install dotenv
 
 ```bash
 # .env.example for this post, copy to .env
-# Full file vs Fragment: keep this file at project root, never commit real .env
 MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/blogdb
 JWT_SECRET=dev-only-change-in-prod
 PORT=3000
@@ -112,7 +122,9 @@ Why env var and not hardcoded string? Connection strings hold passwords. Hardcod
 
 Atlas quick path: create free cluster, add IP `0.0.0.0/0` for learning (lock down later), create user and password, copy the `mongodb+srv://` string into `.env` as `MONGO_URI`.
 
-## Schemas and models for authors, posts, comments
+> Checkpoint: you should see your Atlas cluster list a database with a collection once you insert the first document.
+
+## Part 3 of 5: Schemas and models for authors, posts, comments
 
 This is the single canonical schema for the series. Old drafts had users plus admins plus courses plus purchases in two posts with drift. This version keeps the same relations but in blog words so the thread stays clean.
 
@@ -192,7 +204,11 @@ Common mistake: `type: Array` without element type. That allows mixed junk like 
 
 </details>
 
-## CRUD, the four ops you will use daily
+> Checkpoint: you should see a post missing a required field get rejected with a validation error.
+
+> **Good place to stop.** Everything above is saved in your repo and your head. Next up: *CRUD, the four ops you will use daily*.
+
+## Part 4 of 5: CRUD, the four ops you will use daily
 
 Create, read, update, delete. Same words as the array version, now against Mongo.
 
@@ -258,9 +274,11 @@ Common mistake: `Post.find({ authorId: "string-id" })` with wrong type sometimes
 
 </details>
 
-## Full auth plus DB, the version to copy
+> Checkpoint: you should see create, read, update and delete each change what you see in Atlas.
 
-This merges the JWT flow from post 04 with real storage. Same routes, no more arrays.
+## Part 5 of 5: Full auth plus DB, the version to copy
+
+This merges the JWT flow from [the auth post](../10-auth-with-bcrypt-and-jwt/) with real storage. Same routes, no more arrays.
 
 ```js
 require("dotenv").config(); // needs npm install dotenv
@@ -282,14 +300,14 @@ mongoose.connect(process.env.MONGO_URI).then(() => console.log("DB up"));
 function authMiddleware(req, res, next) {
   const h = req.headers.authorization;
   if (!h || !h.startsWith("Bearer ")) {
-    return res.status(403).json({ error: "No token" });
+    return res.status(401).json({ error: "No token" });
   }
   try {
     const d = jwt.verify(h.split(" ")[1], JWT_SECRET);
     req.authorId = d.authorId;
     next();
   } catch {
-    return res.status(403).json({ error: "Bad token" });
+    return res.status(401).json({ error: "Bad token" });
   }
 }
 
@@ -313,7 +331,7 @@ app.post("/signup", async (req, res) => {
 app.post("/posts", authMiddleware, async (req, res) => {
   const { title, content } = req.body;
   if (!title || !content) {
-    return res.status(411).json({ error: "title and content required" });
+    return res.status(400).json({ error: "title and content required" });
   }
   const post = await Post.create({
     title,
@@ -339,17 +357,37 @@ Why catch `11000` specifically? That is Mongo duplicate key. Mapping it to 409 t
 
 Why sign with `_id` and not username? Ids never change. Usernames can. Token stays valid after a rename when it holds the id.
 
+> Checkpoint: you should see your posts and users still there after you restart the server. That is the whole point of a database.
+
 ## Patterns from real Mongo work
 
 **One schema file per model, one db file for connect.** `models/Author.js`, `models/Post.js`, `db.js`. Routes import models, never define schemas inline. When Post gains `views`, you edit one file.
 
-**Validate twice, for different reasons.** Zod checks shape at the API edge for nice 411s. Mongoose schema enforces at storage for safety when other scripts write directly. Skipping either leaves a hole.
+**Validate twice, for different reasons.** Zod checks shape at the API edge for nice 400s. Mongoose schema enforces at storage for safety when other scripts write directly. Skipping either leaves a hole.
 
 **Index what you query by.** `authorId`, `published`, `createdAt` need indexes once posts grow. Without them, list pages scan everything and slow down. Add `PostSchema.index({ authorId: 1, createdAt: -1 })` early.
 
 **Never return password hashes.** Select excludes or populate field lists everywhere. I search for `.populate("authorId")` without fields in review and flag it. One leak exposes every hash to brute force.
 
 **Use lean for read heavy lists.** `Post.find({}).lean()` returns plain objects, faster and lighter than full docs when you do not need save or virtuals. Feeds and search use lean. Edits load full docs.
+
+## Solo rep: Model and routes, rebuilt
+
+> **Level 2: Peek once.** Read the code once, hide it, and type it from memory. Peek again only when stuck. No copy paste and no AI help. Docs are fine after 10 minutes stuck.
+
+Peek at the model section once. Then rebuild a `Post` model with a schema (title, content, author reference, published flag), `POST /posts` that sets the author from the token, and `GET /posts` that populates the author's username.
+
+<details>
+<summary>Check yourself, only after you try</summary>
+
+Check yourself:
+
+- The schema has `required` on title and content
+- The author reference uses `ref` pointing to the author model
+- `GET /posts` uses `populate` and `lean`
+- A post created without a token returns 401
+
+</details>
 
 ## Projects
 
@@ -364,6 +402,8 @@ Requirements:
 - `POST /posts/:id/comments` needs auth, creates comment linked to post
 - `GET /posts/:id/comments` public list with comment author names
 
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. When the timer ends, peek once, close it, and type your final version yourself. Typing it yourself is the point.
+
 <details>
 <summary>Solution with explanation</summary>
 
@@ -371,7 +411,7 @@ Requirements:
 app.post("/posts", authMiddleware, async (req, res) => {
   const { title, content } = req.body;
   if (!title || title.length < 5 || !content || content.length < 20) {
-    return res.status(411).json({ error: "Title 5+, content 20+ chars" });
+    return res.status(400).json({ error: "Title 5+, content 20+ chars" });
   }
   const post = await Post.create({ title, content, authorId: req.authorId });
   res.status(201).json(post);
@@ -422,6 +462,8 @@ Requirements:
 - Use aggregate group and sort, not in memory loops
 - Starter seed to create two posts first, then add views with `POST /views` using their `_id` values from the create responses
 
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. When the timer ends, peek once, close it, and type your final version yourself. Typing it yourself is the point.
+
 <details>
 <summary>Solution with explanation</summary>
 
@@ -465,6 +507,8 @@ Requirements:
 - JS fetch GET posts on load, POST on button, render with `createElement`, no innerHTML templating for user text
 - Signup and signin forms storing token in memory, sending Bearer on POST
 - Show my posts only after login via `/mine`
+
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. When the timer ends, peek once, close it, and type your final version yourself. Typing it yourself is the point.
 
 <details>
 <summary>Solution with explanation</summary>
@@ -526,4 +570,10 @@ Next is the frontend bridge. We leave the server running and switch to the brows
 
 - If lost: connect timeout means `MONGO_URI` missing or IP not allowed, check `.env` plus Atlas access. `11000` means duplicate username, map to 409 as shown.
 - If bored: skip to Project 1 catalog with populate, it is the query pattern feeds use daily.
-- Keep for next: running API on `3000` plus Mongo connected. Post 06 fetches these same posts from the browser.
+- Keep for next: running API on `3000` plus Mongo connected. [The DOM post](../12-dom-to-react-bridge/) fetches these same posts from the browser.
+
+## What breaks next
+
+The backend is done and data survives. How does a human actually see it?
+
+[Where we are and what is next](../progress/)

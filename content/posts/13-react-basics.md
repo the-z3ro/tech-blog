@@ -1,5 +1,5 @@
 ---
-title: "07 : React Basics - State, JSX and Components"
+title: "13 : React Basics - State, JSX and Components"
 date: 2026-08-25T13:30:00+05:30
 draft: false
 tags: ["react", "jsx", "components", "useState"]
@@ -7,29 +7,41 @@ categories: ["web-dev"]
 author: "Eshan"
 showToc: true
 TocOpen: false
-weight: 7
+weight: 1300
 description: "Mental model, JSX rules, components and props, useState with immutable updates, and re-render rules. Built on the blog drafts app."
+aliases: ["/posts/07-react-basics/", "/posts/10-react-basics/", "/posts/react-basics/"]
 cover:
   image: ""
   alt: ""
   caption: ""
 ---
 
-Raw DOM taught me the pain. Now the fix. React lets me describe what the UI should look like for a given state, and it handles the DOM patches.
+In a video editor you never repaint the preview by hand. You change the timeline, and the preview redraws itself. React works the same way: you change **state**, and the screen redraws from it. The big idea is one line: **UI is a function of state**.
 
-We keep the same blog drafts app from post 06. Same data, new mental model.
+This post makes that line real: JSX, components, props, state, and why you never change state directly.
+
+> **Where we are:** Raw DOM talking to your API. After this post you think in components.
+>
+> **Phase 01** · React core · [Series progress](../progress/) · [Start here](../start-here/)
+>
+> **In scope today:** JSX, components, props, state, immutable updates, re-rendering.  
+> **Not today:** Effects and refs, routing, and global state. Each gets its own post.
+>
+> **Time:** about 20 minutes to read, 60 to build.
+
+> **Warm-up rep (3 minutes, no peeking):** From memory, write the raw DOM code that adds one `li` to a `ul`. Notice how much manual work it is.
 
 <details>
 <summary>Prereqs to run this file</summary>
 
-- Post 06 Vite app running. Folder: `blog-frontend`, `npm run dev` on `http://localhost:5173`.
+- The Vite app from [the DOM post](../12-dom-to-react-bridge/) running. Folder: `blog-frontend`, `npm run dev` on `http://localhost:5173`.
 - No backend needed. All state is local with `useState`.
 - Paste rule: components below are Fragments. To run in Vite, save as `src/App.jsx` with `import { useState } from "react"` at top and `export default FunctionName` at bottom. Full file versions live in Projects.
-- JS recap: destructure `{ title }`, spread `[...list]`, `filter` and `map` from post 02. If fuzzy, reread post 02 chain section first.
+- JS recap: destructure `{ title }`, spread `[...list]`, `filter` and `map` from [the async JavaScript post](../06-async-js-and-array-methods/). If fuzzy, reread [the async JavaScript post](../06-async-js-and-array-methods/) chain section first.
 
 </details>
 
-## Mental model: state in, UI out
+## Part 1 of 7: Mental model: state in, UI out
 
 Every frontend has two halves:
 
@@ -67,7 +79,7 @@ Common mistake: keeping both `drafts` and `filteredDrafts` in state and updating
 
 </details>
 
-## Vanilla vs React, same counter both ways
+## Part 2 of 7: Vanilla vs React, same counter both ways
 
 Vanilla counter needs manual DOM writes on every change:
 
@@ -103,7 +115,9 @@ function WordCounter() {
 
 Why the React version wins as pages grow: no `getElementById` map to maintain, no manual update calls to forget. `setWords` triggers render, React patches the `p` text. Add ten more fields and the pattern stays the same.
 
-## JSX rules you will hit this week
+> Checkpoint: you should see both counters behave the same, and the React one with no `querySelector` anywhere.
+
+## Part 3 of 7: JSX rules you will hit this week
 
 **JSX** looks like HTML but is JS. It compiles to `React.createElement` calls.
 
@@ -171,7 +185,11 @@ Common mistake: `<label for="x">` in JSX. Use `htmlFor` for the same reserved wo
 
 </details>
 
-## Components, props, and children
+> Checkpoint: you should see a component returning one root element render, and one returning two siblings without a wrapper show an error.
+
+> **Good place to stop.** Everything above is saved in your repo and your head. Next up: *Components, props, and children*.
+
+## Part 4 of 7: Components, props, and children
 
 A **component** is a reusable function that returns JSX. Props are inputs, read only inside.
 
@@ -259,7 +277,9 @@ Common mistake: `key={Math.random()}`. New key every render forces full recreate
 
 </details>
 
-## useState with immutable updates
+> Checkpoint: you should see the same component rendered three times with different props show three different results.
+
+## Part 5 of 7: useState with immutable updates
 
 `useState` holds component state. Setter triggers rerender with new value.
 
@@ -348,7 +368,9 @@ Common mistake: `drafts.splice(i, 1); setDrafts(drafts)`. Splice mutates in plac
 
 </details>
 
-## Re-render rules and keeping them cheap
+> Checkpoint: you should see adding to a list create a new array, and the UI update immediately.
+
+## Part 6 of 7: Re-render rules and keeping them cheap
 
 A component rerenders when:
 
@@ -374,7 +396,7 @@ Why child rerenders when parent types? React reruns the parent function, which r
 Two cheap fixes I use first:
 
 1. Push state down. If only the search input needs `filter`, move `useState` into `SearchBar`, not the whole admin page.
-2. Memoize heavy children with `memo` when props are stable. Details plus `useMemo` and `useCallback` land in post 08.
+2. Memoize heavy children with `memo` when props are stable. Details plus `useMemo` and `useCallback` land in [the hooks post](../14-react-hooks-in-depth/).
 
 ```jsx
 // Push down: ExpensiveStats no longer rerenders on filter typing
@@ -404,6 +426,25 @@ const adminState = {
 };
 ```
 
+> Checkpoint: you should see a log inside the component fire on each state change, and not fire when nothing changed.
+
+> **Good place to stop.** Everything above is saved in your repo and your head. Next up: *Errors you will meet in your first week*.
+
+## Part 7 of 7: Errors you will meet in your first week
+
+Every one of these scared me the first time. None of them is serious.
+
+| Message | What it means | Fix |
+| ------- | ------------- | --- |
+| `Too many re-renders` | You called a state setter during render | Write `onClick={() => setCount(1)}`, not `onClick={setCount(1)}` |
+| `Each child in a list should have a unique "key"` | React cannot track list items | Add `key={item.id}` on the outer element in `map` |
+| `Objects are not valid as a React child` | You rendered an object like `{user}` | Render a field: `{user.name}` |
+| `Cannot read properties of undefined (reading 'map')` | Data has not arrived yet | Start state as `[]`, not `undefined` |
+| `Adjacent JSX elements must be wrapped` | A component returned two siblings | Wrap them in a fragment: `<>...</>` |
+| UI does not update after a change | You mutated state directly | Create a new array or object and pass it to the setter |
+
+> Checkpoint: pick any two rows and cause the error on purpose in a scratch component. Seeing it fail once makes it forgettable in a good way.
+
 ## Patterns I copy in every React file
 
 **Props down, events up.** Parent owns drafts. Child gets `draft` plus `onToggle(id)`. Child never edits parent array directly. That one direction keeps bugs local.
@@ -415,6 +456,40 @@ const adminState = {
 **Small components with clear names.** `DraftCard`, `PublishButton`, `SearchBar`. Not `Item`, `Wrapper`, `Handler`. File search finds them, new teammates guess what they do.
 
 **Colocate state.** Keep `title` input state inside the form, not the page. Lift only when two siblings truly share it. Lifting everything to App rerenders everything on each keystroke.
+
+## Solo rep: A LikeButton component
+
+> **Level 3: Spec only.** You get a plain sentence of what to build. No code to look at. Docs are allowed after 10 minutes stuck. No copy paste and no AI help. Docs are fine after 10 minutes stuck.
+
+From this spec only: a `LikeButton` component with a `label` prop and its own count state. Clicking increases the count. Render three of them with different labels and check that each has an independent count.
+
+<details>
+<summary>Check yourself, only after you try</summary>
+
+```jsx
+import { useState } from "react";
+
+function LikeButton({ label }) {
+  const [count, setCount] = useState(0);
+  return (
+    <button onClick={() => setCount(count + 1)}>
+      {label}: {count}
+    </button>
+  );
+}
+
+export default function App() {
+  return (
+    <>
+      <LikeButton label="Posts" />
+      <LikeButton label="Comments" />
+      <LikeButton label="Authors" />
+    </>
+  );
+}
+```
+
+</details>
 
 ## Projects
 
@@ -428,6 +503,8 @@ Requirements:
 - Buttons +50, -50, Reset
 - Text red when over 1000, normal below
 - Derived message: Draft, Long read, Too long, computed not stored
+
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. When the timer ends, peek once, close it, and type your final version yourself. Typing it yourself is the point.
 
 <details>
 <summary>Solution with explanation</summary>
@@ -470,6 +547,8 @@ Requirements:
 - Filter tabs: All, Drafts, Published
 - Count line like `3 drafts, 2 published`
 - Keys by id, no index keys, immutable updates only
+
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. When the timer ends, peek once, close it, and type your final version yourself. Typing it yourself is the point.
 
 <details>
 <summary>Solution with explanation</summary>
@@ -563,6 +642,8 @@ Requirements:
 - Hex string below like `#ff8040`, padded to 2 digits per channel
 - Reset button to 128 gray
 
+> **Solo gate:** set a 15 minute timer and build this without opening the solution. When the timer ends, peek once, close it, and type your final version yourself. Typing it yourself is the point.
+
 <details>
 <summary>Solution with explanation</summary>
 
@@ -646,4 +727,10 @@ Next is hooks in depth. `useEffect` for fetching the real posts API, plus `useMe
 
 - If lost: no render after push means mutated state, switch to `[...list]` or `filter`. Input text stuck to wrong row means `key={index}`, switch to stable `id`.
 - If bored: skip to Project 2 drafts manager with tabs, it combines all basics in one admin.
-- Keep for next: `DraftsManager` plus controlled inputs. Post 08 adds effects and memos to this same UI.
+- Keep for next: `DraftsManager` plus controlled inputs. [The hooks post](../14-react-hooks-in-depth/) adds effects and memos to this same UI.
+
+## What breaks next
+
+State and JSX click. What about things that happen outside React, like timers, fetches and subscriptions?
+
+[Where we are and what is next](../progress/)
