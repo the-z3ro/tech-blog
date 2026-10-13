@@ -4,112 +4,240 @@
            ======================================================== */
 
     document.addEventListener("DOMContentLoaded", () => {
-        // --- 1. RESPONSIVE TACTICAL TOC HUD ---
-        const initTacticalHUD = () => {
-            let progressBar = document.createElement("div");
-            progressBar.className = "reading-progress";
-            document.body.appendChild(progressBar);
+        // --- 1. RESPONSIVE TACTICAL TOC HUD (desktop rail + mobile sheet) ---
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
 
+        const initTacticalHUD = () => {
             const content = document.querySelector(".post-content");
             if (!content) return;
 
+            const progressBar = document.createElement("div");
+            progressBar.className = "reading-progress";
+            progressBar.setAttribute("aria-hidden", "true");
+            document.body.appendChild(progressBar);
+
+            const words = (content.textContent.match(/\S+/g) || []).length;
+            const totalMin = Math.max(1, Math.ceil(words / 200));
             const headings = Array.from(content.querySelectorAll("h2, h3"));
-            if (headings.length === 0) return;
 
-            const hud = document.createElement("div");
+            const update0 = () => {
+                const y = window.scrollY;
+                const r = content.getBoundingClientRect();
+                const top = r.top + y;
+                const atEnd = y > 0 && y + window.innerHeight >= document.documentElement.scrollHeight - 4;
+                return atEnd ? 1 : clamp((y + window.innerHeight * 0.4 - top) / Math.max(1, r.height), 0, 1);
+            };
+
+            // Posts without h2/h3 still get the progress bar
+            if (headings.length === 0) {
+                const only = () => { progressBar.style.width = update0() * 100 + "%"; };
+                window.addEventListener("scroll", only, {passive: true});
+                only();
+                return;
+            }
+
+            document.body.classList.add("has-toc");
+
+            // ---- collect heading data ----
+            const used = new Set();
+            const data = [];
+            let lastH2 = -1;
+            headings.forEach((h, i) => {
+                if (!h.id) {
+                    let base = h.textContent.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "section";
+                    let id = base, n = 2;
+                    while (used.has(id) || document.getElementById(id)) id = base + "-" + n++;
+                    h.id = id;
+                }
+                used.add(h.id);
+                const clone = h.cloneNode(true);
+                clone.querySelectorAll(".anchor, a[aria-hidden]").forEach((a) => a.remove());
+                const text = clone.textContent.trim();
+                const level = h.tagName === "H2" ? 2 : 3;
+                if (level === 2) lastH2 = i;
+                data.push({el: h, id: h.id, text, level, parent: level === 3 ? lastH2 : -1});
+            });
+
+            // ---- builders ----
+            const buildList = (container) => {
+                const links = data.map((d) => {
+                    const a = document.createElement("a");
+                    a.href = "#" + d.id;
+                    a.className = "hud-item h" + d.level;
+                    const span = document.createElement("span");
+                    span.className = "hud-text";
+                    span.textContent = d.text;
+                    a.appendChild(span);
+                    a.title = d.text;
+                    if (d.level === 3 && d.parent === -1) a.classList.add("open");
+                    container.appendChild(a);
+                    return a;
+                });
+                return links;
+            };
+
+            // Desktop rail
+            const hud = document.createElement("nav");
             hud.className = "tactical-toc-hud";
-            document.body.appendChild(hud);
-
-            const hudHeader = document.createElement("div");
-            hudHeader.className = "hud-header";
-            hudHeader.innerHTML = `<span id="hud-pct">00%</span> <span class="hud-label">// TOC_TRACKER</span>`;
-            hud.appendChild(hudHeader);
-
-            // The Scrollable List Box
+            hud.setAttribute("aria-label", "On this page");
+            hud.innerHTML =
+                `<div class="hud-header"><span id="hud-pct">00%</span><span class="hud-label">// On this page</span></div>` +
+                `<div class="hud-track" aria-hidden="true"><div class="hud-track-fill"></div></div>`;
             const list = document.createElement("div");
             list.className = "hud-list";
             list.id = "toc-scroll-box";
             hud.appendChild(list);
-
-            const headingData = [];
-
-            headings.forEach((h) => {
-                if (!h.id) h.id = h.innerText.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-
-                const item = document.createElement("a");
-                item.href = `#${h.id}`;
-                item.className =
-                    h.tagName.toLowerCase() === "h2" ? "hud-item h2" : "hud-item h3";
-
-                let text = h.innerText.replace(/#/g, "").trim();
-                item.innerText = text;
-                item.title = text;
-
-                list.appendChild(item);
-                headingData.push({domElem: h, hudElem: item});
+            const foot = document.createElement("div");
+            foot.className = "hud-foot";
+            foot.innerHTML = `<span class="hud-time"></span><a class="hud-top" href="#top">Back to top ↑</a>`;
+            hud.appendChild(foot);
+            document.body.appendChild(hud);
+            const railLinks = buildList(list);
+            hud.querySelector(".hud-top").addEventListener("click", (e) => {
+                e.preventDefault();
+                window.scrollTo({top: 0, behavior: reduceMotion ? "auto" : "smooth"});
             });
 
-            const pctDisplay = document.getElementById("hud-pct");
-            const scrollBox = document.getElementById("toc-scroll-box");
-            let ticking = false;
+            // Mobile / tablet: floating button + bottom sheet
+            const fab = document.createElement("button");
+            fab.type = "button";
+            fab.className = "toc-fab";
+            fab.setAttribute("aria-label", "Open table of contents");
+            fab.setAttribute("aria-haspopup", "dialog");
+            fab.setAttribute("aria-expanded", "false");
+            fab.innerHTML =
+                `<svg class="ring" viewBox="0 0 44 44" aria-hidden="true"><circle class="ring-bg" cx="22" cy="22" r="19"/><circle class="ring-fg" cx="22" cy="22" r="19"/></svg>` +
+                `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h16"/></svg>`;
+            const backdrop = document.createElement("div");
+            backdrop.className = "toc-sheet-backdrop";
+            const sheet = document.createElement("div");
+            sheet.className = "toc-sheet";
+            sheet.setAttribute("role", "dialog");
+            sheet.setAttribute("aria-modal", "true");
+            sheet.setAttribute("aria-labelledby", "toc-sheet-title");
+            sheet.innerHTML =
+                `<div class="toc-sheet-head"><span class="toc-sheet-title" id="toc-sheet-title">On this page</span>` +
+                `<span class="toc-sheet-meta"></span>` +
+                `<button type="button" class="toc-sheet-close" aria-label="Close table of contents">×</button></div>`;
+            const sheetList = document.createElement("nav");
+            sheetList.className = "hud-list";
+            sheetList.setAttribute("aria-label", "On this page");
+            sheet.appendChild(sheetList);
+            document.body.append(fab, backdrop, sheet);
+            const sheetLinks = buildList(sheetList);
+            const sheetMeta = sheet.querySelector(".toc-sheet-meta");
 
-            window.addEventListener("scroll", () => {
-                if (!ticking) {
-                    window.requestAnimationFrame(() => {
-                        const winScroll =
-                            document.documentElement.scrollTop || document.body.scrollTop;
-                        const height =
-                            document.documentElement.scrollHeight -
-                            document.documentElement.clientHeight;
-
-                        const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
-                        progressBar.style.width = scrolled + "%";
-
-                        const pct = Math.round(scrolled);
-                        pctDisplay.innerText = (pct < 10 ? `0${pct}` : pct) + "%";
-
-                        let activeIndex = -1;
-                        const triggerPoint = window.innerHeight * 0.3;
-
-                        // Find which heading we are currently reading
-                        headingData.forEach((data, index) => {
-                            const rect = data.domElem.getBoundingClientRect();
-                            if (rect.top < triggerPoint) {
-                                activeIndex = index;
-                            }
-                        });
-
-                        // Update styling and auto-scroll the TOC
-                        headingData.forEach((data, index) => {
-                            if (index === activeIndex) {
-                                // Add glow effect
-                                data.hudElem.classList.add("active");
-
-                                // ✨ MAGIC: Auto-scroll the TOC slider if item goes out of bounds
-                                const itemTop = data.hudElem.offsetTop;
-                                const boxHeight = scrollBox.clientHeight;
-                                const currentScroll = scrollBox.scrollTop;
-
-                                // If item is above view or below view, smooth scroll it into the center
-                                if (
-                                    itemTop < currentScroll ||
-                                    itemTop > currentScroll + boxHeight - 30
-                                ) {
-                                    scrollBox.scrollTo({
-                                        top: itemTop - boxHeight / 2,
-                                        behavior: "smooth",
-                                    });
-                                }
-                            } else {
-                                data.hudElem.classList.remove("active");
-                            }
-                        });
-
-                        ticking = false;
-                    });
-                    ticking = true;
+            const mqDesktop = window.matchMedia("(min-width: 1024px)");
+            let sheetOpen = false;
+            const openSheet = () => {
+                if (mqDesktop.matches) return;
+                sheetOpen = true;
+                sheet.classList.add("show");
+                backdrop.classList.add("show");
+                document.documentElement.classList.add("toc-open");
+                fab.setAttribute("aria-expanded", "true");
+                requestAnimationFrame(() => {
+                    sheet.style.transform = "translateY(0)";
+                    const act = sheetLinks[current];
+                    if (act) sheetList.scrollTop = Math.max(0, act.offsetTop - sheetList.clientHeight / 3);
+                    sheet.querySelector(".toc-sheet-close").focus({preventScroll: true});
+                });
+            };
+            const closeSheet = (returnFocus = true) => {
+                if (!sheetOpen) return;
+                sheetOpen = false;
+                sheet.classList.remove("show");
+                sheet.style.transform = "";
+                backdrop.classList.remove("show");
+                document.documentElement.classList.remove("toc-open");
+                fab.setAttribute("aria-expanded", "false");
+                if (returnFocus) fab.focus({preventScroll: true});
+            };
+            fab.addEventListener("click", () => (sheetOpen ? closeSheet() : openSheet()));
+            backdrop.addEventListener("click", () => closeSheet());
+            sheet.querySelector(".toc-sheet-close").addEventListener("click", () => closeSheet());
+            sheetLinks.forEach((a) => a.addEventListener("click", () => closeSheet(false)));
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") closeSheet();
+                if (e.key === "Tab" && sheetOpen) {
+                    const f = sheet.querySelectorAll("a, button");
+                    if (!f.length) return;
+                    const first = f[0], last = f[f.length - 1];
+                    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
                 }
             });
+            const onMq = () => { if (mqDesktop.matches) closeSheet(false); measure(); update(); };
+            mqDesktop.addEventListener ? mqDesktop.addEventListener("change", onMq) : mqDesktop.addListener(onMq);
+
+            // ---- scroll tracking (positions cached; recomputed on resize / layout change) ----
+            const pctDisplay = hud.querySelector("#hud-pct");
+            const fill = hud.querySelector(".hud-track-fill");
+            const timeEl = hud.querySelector(".hud-time");
+            const ringFg = fab.querySelector(".ring-fg");
+            const RING = 119.38;
+            let tops = [], docTop = 0, docH = 1, current = -2, ticking = false;
+
+            function measure() {
+                const y = window.scrollY;
+                tops = data.map((d) => d.el.getBoundingClientRect().top + y);
+                const r = content.getBoundingClientRect();
+                docTop = r.top + y;
+                docH = Math.max(1, r.height);
+            }
+
+            const keepVisible = (box, a) => {
+                const top = a.offsetTop, bottom = top + a.offsetHeight;
+                if (top < box.scrollTop + 16 || bottom > box.scrollTop + box.clientHeight - 24) {
+                    box.scrollTo({top: Math.max(0, top - box.clientHeight / 2 + a.offsetHeight / 2), behavior: reduceMotion ? "auto" : "smooth"});
+                }
+            };
+
+            function setActive(idx) {
+                current = idx;
+                const activeParent = idx < 0 ? -1 : data[idx].level === 2 ? idx : data[idx].parent;
+                [railLinks, sheetLinks].forEach((links) => {
+                    links.forEach((a, i) => {
+                        const on = i === idx;
+                        a.classList.toggle("active", on);
+                        if (on) a.setAttribute("aria-current", "location"); else a.removeAttribute("aria-current");
+                        if (data[i].level === 3 && data[i].parent !== -1) a.classList.toggle("open", data[i].parent === activeParent);
+                    });
+                });
+                if (idx >= 0) keepVisible(list, railLinks[idx]);
+            }
+
+            function update() {
+                ticking = false;
+                const y = window.scrollY, vh = window.innerHeight;
+                const atEnd = y > 0 && y + vh >= document.documentElement.scrollHeight - 4;
+                const p = atEnd ? 1 : clamp((y + vh * 0.4 - docTop) / docH, 0, 1);
+
+                progressBar.style.width = p * 100 + "%";
+                fill.style.width = p * 100 + "%";
+                const pct = Math.round(p * 100);
+                const pctText = (pct < 10 ? "0" + pct : pct) + "%";
+                pctDisplay.textContent = pctText;
+                const left = p >= 0.98 ? "Finished" : Math.max(1, Math.ceil(totalMin * (1 - p))) + " min left";
+                timeEl.textContent = left;
+                sheetMeta.textContent = pctText + " · " + left;
+                ringFg.style.strokeDashoffset = RING * (1 - p);
+
+                const trigger = y + Math.max(120, vh * 0.3);
+                let idx = -1;
+                for (let i = 0; i < tops.length; i++) { if (tops[i] <= trigger) idx = i; else break; }
+                if (atEnd) idx = tops.length - 1;
+                if (idx !== current) setActive(idx);
+            }
+
+            const schedule = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+            window.addEventListener("scroll", schedule, {passive: true});
+            window.addEventListener("resize", () => { measure(); schedule(); });
+            window.addEventListener("load", () => { measure(); schedule(); });
+            if ("ResizeObserver" in window) new ResizeObserver(() => { measure(); schedule(); }).observe(content);
+            measure();
+            update();
         };
 
         // --- 2. SECURE BOOT OVERLAY (Rare Animation) ---
@@ -118,7 +246,7 @@
                 document.body.classList.contains("dark") ||
                 document.documentElement.getAttribute("data-theme") === "dark";
 
-            if (isDarkMode && !sessionStorage.getItem("system_booted")) {
+            if (isDarkMode && !reduceMotion && !sessionStorage.getItem("system_booted")) {
                 const bootScreen = document.createElement("div");
                 bootScreen.className = "boot-screen";
 

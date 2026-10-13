@@ -3,7 +3,7 @@
    STYLE: Modern Responsive Tech / Agent UI
    ============================================ */
 
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap");
+/* Fonts are loaded in layouts/partials/extend_head.html (an @import here is ignored once Hugo bundles the CSS). */
 
 /* 📝 EDIT HERE: CORE DIMENSIONS */
 :root {
@@ -60,6 +60,7 @@
     --border: #e2e8e0;
     --laser-primary: #15803d;
     --ui-border-glow: rgba(21, 128, 61, 0.2);
+    --code-bg: #eef1ec;
 }
 
 /* ============================================
@@ -69,7 +70,7 @@ body {
     font-family: "JetBrains Mono", monospace;
     letter-spacing: 0.2px;
     line-height: 1.7;
-    overflow-x: hidden;
+    overflow-x: clip;
 }
 
 h1,
@@ -269,6 +270,7 @@ button:active {
     border-right-color: var(--border);
 }
 
+@media (hover: hover) {
 .dark .post-entry:hover,
 [data-theme="dark"] .post-entry:hover {
     transform: scale(1.02);
@@ -293,6 +295,7 @@ button:active {
     border-color: #d9f99d;
     box-shadow: 2px 2px 10px rgba(217, 249, 157, 0.4);
 }
+}
 
 /* Text glow & Click fix */
 .dark .post-entry>*,
@@ -308,65 +311,136 @@ button:active {
     cursor: pointer;
 }
 
+@media (hover: hover) {
 .dark .post-entry:hover .entry-header h2,
 [data-theme="dark"] .post-entry:hover .entry-header h2 {
     color: #d9f99d;
     text-shadow: 0 0 12px rgba(217, 249, 157, 0.5);
 }
+}
 
 /* ============================================
-   TACTICAL HUD (TOC SIDEBAR)
+   TACTICAL HUD (TOC SIDEBAR)  — v5
+   ≥1024px : sticky left rail, content column shifts to make room
+   <1024px : floating "On this page" button + bottom sheet
    ============================================ */
 html {
     scroll-behavior: smooth;
 }
 
-.tactical-toc-hud {
-    position: fixed;
-    top: 120px;
-    left: calc(50vw - (var(--main-width) / 2) - var(--hud-width) - var(--gap-width));
-    width: var(--hud-width);
-    max-height: calc(100vh - 150px);
-    display: flex;
-    flex-direction: column;
-    font-size: 0.65rem;
-    color: var(--tertiary);
-    z-index: 9998;
-    opacity: 0.8;
-    transition: opacity 0.3s ease;
+:root {
+    --hud-text: #a9b4a3;
+    --hud-text-strong: #e4ebe0;
+    --hud-line: rgba(169, 180, 163, 0.22);
+    --hud-accent: var(--laser-primary);
+    --hud-surface: #1d1f1c;
+    --hud-surface-2: #262925;
 }
 
-.tactical-toc-hud:hover {
-    opacity: 1;
+:root[data-theme="light"] {
+    --hud-text: #4a5247;
+    --hud-text-strong: #1a1c19;
+    --hud-line: rgba(74, 82, 71, 0.25);
+    --hud-accent: #15803d;
+    --hud-surface: #ffffff;
+    --hud-surface-2: #f1f4ef;
+}
+
+/* The article headings never hide under anything and land with breathing room */
+.post-content :is(h1, h2, h3, h4) {
+    scroll-margin-top: 1.5rem;
+}
+
+/* ---------- Desktop rail ---------- */
+.tactical-toc-hud {
+    display: none;
+}
+
+@media screen and (min-width: 1024px) {
+
+    :root {
+        --rail: clamp(13rem, 19vw, 17.5rem);
+        --rail-gap: 2rem;
+        --edge: 1rem;
+        --main-pad: 20px;
+        --content-left: max(calc((100vw - var(--main-width)) / 2),
+                calc(var(--rail) + var(--rail-gap) + var(--edge)));
+    }
+
+    /* Make room for the rail only on pages that actually have one */
+    body:has(.post-content h2, .post-content h3) .main,
+    body.has-toc .main {
+        margin-left: var(--content-left) !important;
+        margin-right: auto !important;
+        max-width: min(var(--main-width), calc(100vw - var(--content-left) - var(--edge))) !important;
+    }
+
+    .tactical-toc-hud {
+        position: fixed;
+        top: 96px;
+        left: calc(var(--content-left) + var(--main-pad) - var(--rail-gap) - var(--rail));
+        width: var(--rail);
+        max-height: calc(100vh - 96px - 24px);
+        display: flex;
+        flex-direction: column;
+        font-size: 0.8125rem;
+        color: var(--hud-text);
+        z-index: 50;
+    }
 }
 
 .hud-header {
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
     display: flex;
     justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 0.8125rem;
     font-weight: 700;
-    flex-shrink: 0;
+    letter-spacing: 0.08em;
+    color: var(--hud-text);
 }
 
 #hud-pct {
-    color: var(--laser-primary);
+    color: var(--hud-accent);
+    font-variant-numeric: tabular-nums;
 }
 
 .hud-label {
-    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.hud-track {
+    flex-shrink: 0;
+    height: 2px;
+    margin-bottom: 14px;
+    background: var(--hud-line);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.hud-track-fill {
+    height: 100%;
+    width: 0;
+    background: var(--hud-accent);
+    transition: width 0.15s linear;
 }
 
 .hud-list {
-    flex: 1;
+    position: relative;
+    flex: 1 1 auto;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 2px;
     overflow-y: auto;
-    padding-right: 15px;
-    padding-bottom: 20px;
+    overscroll-behavior: contain;
+    padding: 4px 8px 12px 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--hud-line) transparent;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 10px, #000 calc(100% - 22px), transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 10px, #000 calc(100% - 22px), transparent 100%);
 }
 
 .hud-list::-webkit-scrollbar {
@@ -374,68 +448,294 @@ html {
 }
 
 .hud-list::-webkit-scrollbar-thumb {
-    background: var(--ui-border-glow);
+    background: var(--hud-line);
     border-radius: 4px;
-}
-
-.hud-list::-webkit-scrollbar-thumb:hover {
-    background: var(--laser-primary);
 }
 
 .hud-item {
     flex-shrink: 0;
     position: relative;
-    padding-left: 15px;
-    color: var(--tertiary);
+    display: block;
+    padding: 6px 0 6px 14px;
+    color: var(--hud-text);
     text-decoration: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     line-height: 1.4;
+    border-left: 2px solid var(--hud-line);
+    border-radius: 0 6px 6px 0;
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* the clamp lives on an inner span so padding never lets a third line peek through */
+.hud-text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
 }
 
 .hud-item:hover {
-    color: var(--primary);
-    transform: translateX(2px);
+    color: var(--hud-text-strong);
+    background: var(--hud-surface-2);
+}
+
+.hud-item:focus-visible,
+.hud-top:focus-visible,
+.toc-fab:focus-visible,
+.toc-sheet-close:focus-visible {
+    outline: 2px solid var(--hud-accent);
+    outline-offset: 2px;
 }
 
 .hud-item.h3 {
-    padding-left: 25px;
-    font-size: 0.6rem;
-    opacity: 0.8;
+    margin-left: 12px;
+    padding-left: 12px;
+    font-size: 0.78rem;
+    display: none;
 }
 
-.hud-item::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 4px;
-    height: 4px;
-    background: var(--border);
-    border-radius: 50%;
-    transition: all 0.3s ease;
+.hud-item.h3.open {
+    display: block;
 }
 
 .hud-item.active {
-    color: var(--laser-primary);
-    font-weight: bold;
-    transform: translateX(6px);
+    color: var(--hud-accent);
+    font-weight: 700;
+    border-left-color: var(--hud-accent);
+    background: var(--hud-surface-2);
 }
 
-.hud-item.active::before {
-    background: var(--laser-primary);
-    box-shadow: 0 0 10px var(--laser-primary);
-    height: 100%;
-    border-radius: 0;
-    width: 2px;
+.hud-foot {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--hud-line);
+    font-size: 0.8125rem;
 }
 
-@media screen and (max-width: 1450px) {
-    .tactical-toc-hud {
-        display: none !important;
+.hud-time {
+    font-variant-numeric: tabular-nums;
+}
+
+.hud-top {
+    color: var(--hud-text);
+    text-decoration: none;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.hud-top:hover {
+    color: var(--hud-accent);
+}
+
+/* ---------- Mobile / tablet: floating button + bottom sheet ---------- */
+.toc-fab,
+.toc-sheet,
+.toc-sheet-backdrop {
+    display: none;
+}
+
+@media screen and (max-width: 1023.98px) {
+
+    .toc-fab,
+    .toc-fab:hover,
+    .toc-fab:active {
+        display: grid;
+        place-items: center;
+        position: fixed;
+        right: max(16px, env(safe-area-inset-right));
+        bottom: max(16px, env(safe-area-inset-bottom));
+        width: 52px;
+        height: 52px;
+        padding: 0;
+        z-index: 9990;
+        color: var(--hud-text-strong);
+        background: var(--hud-surface);
+        border: 1px solid var(--hud-line);
+        border-radius: 50%;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+        overflow: visible;
+        transform: none;
+    }
+
+    .toc-fab::before {
+        content: none;
+    }
+
+    .toc-fab svg {
+        grid-area: 1 / 1;
+    }
+
+    .toc-fab .ring {
+        position: absolute;
+        inset: -1px;
+        width: calc(100% + 2px);
+        height: calc(100% + 2px);
+        transform: rotate(-90deg);
+    }
+
+    .toc-fab .ring circle {
+        fill: none;
+        stroke-width: 2.5;
+    }
+
+    .toc-fab .ring-bg {
+        stroke: var(--hud-line);
+    }
+
+    .toc-fab .ring-fg {
+        stroke: var(--hud-accent);
+        stroke-linecap: round;
+        stroke-dasharray: 119.38;
+        stroke-dashoffset: 119.38;
+        transition: stroke-dashoffset 0.15s linear;
+    }
+
+    .toc-fab .icon {
+        width: 20px;
+        height: 20px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+    }
+
+    /* theme's own back-to-top button moves up so the two never overlap */
+    body:has(.toc-fab) .top-link {
+        bottom: calc(max(16px, env(safe-area-inset-bottom)) + 52px + 12px);
+        right: max(20px, env(safe-area-inset-right));
+    }
+
+    .toc-sheet-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 9995;
+        background: rgba(0, 0, 0, 0.55);
+        opacity: 0;
+        transition: opacity 0.25s ease;
+    }
+
+    .toc-sheet-backdrop.show {
+        display: block;
+        opacity: 1;
+    }
+
+    .toc-sheet {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 9996;
+        display: none;
+        flex-direction: column;
+        max-height: min(78vh, 640px);
+        padding: 8px 16px max(16px, env(safe-area-inset-bottom));
+        color: var(--hud-text);
+        background: var(--hud-surface);
+        border: 1px solid var(--hud-line);
+        border-bottom: 0;
+        border-radius: 18px 18px 0 0;
+        box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.45);
+        transform: translateY(100%);
+        transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .toc-sheet.show {
+        display: flex;
+        transform: translateY(0);
+    }
+
+    .toc-sheet::before {
+        content: "";
+        align-self: center;
+        width: 40px;
+        height: 4px;
+        margin: 4px 0 10px;
+        border-radius: 4px;
+        background: var(--hud-line);
+    }
+
+    .toc-sheet-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 10px;
+        font-size: 0.875rem;
+        font-weight: 700;
+    }
+
+    .toc-sheet-title {
+        color: var(--hud-text-strong);
+        font-size: 1rem;
+    }
+
+    .toc-sheet-meta {
+        margin-left: auto;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--hud-text);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .toc-sheet-close,
+    .toc-sheet-close:hover {
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        margin: -6px -8px -6px 0;
+        padding: 0;
+        color: var(--hud-text-strong);
+        background: transparent;
+        border: 0;
+        border-radius: 50%;
+        box-shadow: none;
+        font-size: 1.5rem;
+        line-height: 1;
+        overflow: visible;
+    }
+
+    .toc-sheet-close::before {
+        content: none;
+    }
+
+    .toc-sheet .hud-list {
+        padding-right: 0;
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+
+    .toc-sheet .hud-item {
+        font-size: 1rem;
+        padding: 12px 0 12px 14px;
+    }
+
+    .toc-sheet .hud-text {
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+    }
+
+    .toc-sheet .hud-item.h3 {
+        display: block;
+        font-size: 0.9375rem;
+    }
+
+    html.toc-open {
+        overflow: hidden;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .toc-sheet,
+    .toc-sheet-backdrop,
+    .toc-fab .ring-fg,
+    .hud-track-fill {
+        transition: none;
     }
 }
 
@@ -557,66 +857,242 @@ html {
 }
 
 /* ============================================
-   📝 EDIT HERE: FONT SIZES (DESKTOP & MOBILE)
+   FONT SIZES — fluid, rem-based (follows the reader's browser font setting)
+   Reading text never drops below 16px; supporting text never below 14px.
    ============================================ */
+:root {
+    --fs-body: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
+    --fs-small: clamp(0.9375rem, 0.92rem + 0.1vw, 1rem);
+    --fs-meta: 0.875rem;
+    --fs-title: clamp(1.75rem, 1.35rem + 1.7vw, 2.5rem);
+    --fs-h1: clamp(1.6rem, 1.3rem + 1.3vw, 2.25rem);
+    --fs-h2: clamp(1.4rem, 1.2rem + 0.9vw, 1.85rem);
+    --fs-h3: clamp(1.2rem, 1.1rem + 0.5vw, 1.45rem);
+    --fs-card-title: clamp(1.25rem, 1.1rem + 0.6vw, 1.55rem);
+}
 
-/* --- 1. DESKTOP FONT SIZES --- */
 .post-content {
-    font-size: 16px;
+    font-size: var(--fs-body);
     line-height: 1.8;
 }
 
 .post-title {
-    font-size: 2.2rem;
+    font-size: var(--fs-title);
+    line-height: 1.2;
 }
 
 .post-content h1 {
-    font-size: 2rem;
+    font-size: var(--fs-h1);
 }
 
 .post-content h2 {
-    font-size: 1.6rem;
+    font-size: var(--fs-h2);
+    line-height: 1.3;
 }
 
 .post-content h3 {
-    font-size: 1.3rem;
+    font-size: var(--fs-h3);
+    line-height: 1.35;
+}
+
+.post-content h4 {
+    font-size: 1.0625rem;
+}
+
+.post-content h5,
+.post-content h6 {
+    font-size: 1rem;
+}
+
+.post-description {
+    font-size: var(--fs-body);
+}
+
+.post-meta,
+.breadcrumbs {
+    font-size: var(--fs-meta);
+}
+
+.breadcrumbs a {
+    font-size: var(--fs-meta);
 }
 
 .entry-header h2 {
-    font-size: 1.5rem;
+    font-size: var(--fs-card-title);
 }
 
 .entry-content {
-    font-size: 15px;
+    font-size: var(--fs-small);
 }
 
-/* --- 2. MOBILE FONT SIZES --- */
+.entry-footer {
+    font-size: var(--fs-meta);
+}
+
+.first-entry .entry-content {
+    font-size: var(--fs-body);
+}
+
+.post-content code {
+    font-size: 0.88em;
+}
+
+.post-content pre code {
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+
+.post-content table {
+    font-size: 0.9375rem;
+}
+
+.footer,
+.top-link,
+.post-tags a,
+.paginav a {
+    font-size: var(--fs-meta);
+}
+
+/* ============================================
+   RESPONSIVE: HEADER, CARDS, WIDE CONTENT
+   ============================================ */
+
+/* Wide content scrolls inside itself instead of widening the page */
+.post-content table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    background:
+        linear-gradient(to right, var(--theme) 30%, transparent) left / 24px 100% no-repeat local,
+        linear-gradient(to left, var(--theme) 30%, transparent) right / 24px 100% no-repeat local,
+        linear-gradient(to right, var(--ui-border), transparent) left / 10px 100% no-repeat scroll,
+        linear-gradient(to left, var(--ui-border), transparent) right / 10px 100% no-repeat scroll;
+}
+
+.post-content img,
+.post-content video,
+.post-content iframe {
+    max-width: 100%;
+    height: auto;
+}
+
+.post-content :is(p, li, td, th, h1, h2, h3, h4, blockquote) {
+    overflow-wrap: anywhere;
+}
+
+pre,
+.post-content pre code {
+    scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+    height: 8px;
+}
+
+/* Hover-only effects stay off touch screens (no "stuck" hover after a tap) */
+@media (hover: none) {
+
+    .menu a::before,
+    .menu a::after {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 1023.98px) {
+    .main {
+        padding: 0 max(16px, env(safe-area-inset-left)) 0 max(16px, env(safe-area-inset-right));
+    }
+}
+
 @media screen and (max-width: 768px) {
+
+    /* Header: logo row + wrapping menu with comfortable tap targets */
+    .nav {
+        line-height: 1.3;
+        padding: 6px 0;
+    }
+
+    .logo,
+    #menu {
+        margin: 4px var(--gap);
+    }
+
+    .logo {
+        min-height: 44px;
+        align-items: center;
+    }
+
+    #menu {
+        flex-wrap: wrap;
+        white-space: normal;
+        overflow: visible;
+        width: 100%;
+        gap: 0 14px;
+    }
+
+    #menu li+li {
+        margin-inline-start: 0;
+    }
+
+    #menu a {
+        display: block;
+        padding: 10px 2px;
+        font-size: 1rem;
+    }
+
+    .menu a {
+        padding: 10px 2px;
+    }
+
+    /* Cards: less padding so text keeps its width */
+    .dark .post-entry,
+    [data-theme="dark"] .post-entry {
+        padding: 1.25rem 1.125rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .dark .post-entry::before,
+    [data-theme="dark"] .post-entry::before,
+    .dark .post-entry::after,
+    [data-theme="dark"] .post-entry::after {
+        width: 14px;
+        height: 14px;
+        top: 6px;
+        left: 6px;
+    }
+
+    .dark .post-entry::after,
+    [data-theme="dark"] .post-entry::after {
+        top: auto;
+        left: auto;
+        bottom: 6px;
+        right: 6px;
+    }
+
     .post-content {
-        font-size: 15px;
+        line-height: 1.75;
     }
 
-    .post-title {
-        font-size: 1.8rem;
+    .page-header h1 {
+        font-size: var(--fs-title);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
     }
 
-    .post-content h1 {
-        font-size: 1.7rem;
+    .dark body::after {
+        animation: none;
+        display: none;
     }
 
-    .post-content h2 {
-        font-size: 1.4rem;
-    }
-
-    .post-content h3 {
-        font-size: 1.2rem;
-    }
-
-    .entry-header h2 {
-        font-size: 1.3rem;
-    }
-
-    .entry-content {
-        font-size: 14px;
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
     }
 }
